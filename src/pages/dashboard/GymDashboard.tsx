@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+// Deploy trigger: simplified dashboard copy
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Link } from "react-router-dom";
