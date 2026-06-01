@@ -142,8 +142,8 @@ export default function GymDashboard() {
                                     <Zap className="h-5 w-5 md:h-6 md:w-6 text-green-500 fill-current" />
                                 </div>
                                 <div>
-                                    <h2 className="font-black uppercase tracking-widest text-lg md:text-xl font-['Syncopate'] text-theme">ACCESS PORTAL</h2>
-                                    <p className="text-[10px] md:text-xs font-bold text-slate-700 uppercase tracking-widest mt-1">ENTRY VERIFICATION</p>
+                                    <h2 className="font-black uppercase tracking-widest text-lg md:text-xl font-['Syncopate'] text-theme">Check In</h2>
+                                    <p className="text-[10px] md:text-xs font-bold text-slate-700 uppercase tracking-widest mt-1">Scan members at the door</p>
                                 </div>
                             </div>
                         </div>
@@ -159,7 +159,7 @@ export default function GymDashboard() {
                                     }`}
                                 >
                                     <Keyboard className="h-4 w-4" />
-                                    MANUAL ENTRY
+                                    Type Code
                                 </button>
                                 <button
                                     onClick={() => { setScannerMode("camera"); setCameraActive(true); }}
@@ -170,7 +170,7 @@ export default function GymDashboard() {
                                     }`}
                                 >
                                     <Camera className="h-4 w-4" />
-                                    SCAN CODE
+                                    Scan QR
                                 </button>
                             </div>
 
@@ -200,11 +200,11 @@ export default function GymDashboard() {
                                                     {scanning ? (
                                                         <>
                                                             <div className="h-5 w-5 border-2 border-[#ccff00]/30 border-t-[#ccff00] rounded-full animate-spin" />
-                                                            VERIFYING...
+                                                            Checking...
                                                         </>
                                                     ) : (
                                                         <>
-                                                            AUTHORIZE
+                                                            Check In
                                                             <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                                                         </>
                                                     )}
@@ -225,7 +225,7 @@ export default function GymDashboard() {
                                                         <div className="h-16 w-16 border-2 border-[#ccff00] bg-black flex items-center justify-center text-[#ccff00] group-hover:scale-110 transition-transform">
                                                             <Camera className="h-8 w-8" />
                                                         </div>
-                                                        <span className="text-sm font-black uppercase tracking-widest text-[#ccff00]">ACTIVATE SCANNER</span>
+                                                        <span className="text-sm font-black uppercase tracking-widest text-[#ccff00]">Turn On Camera</span>
                                                     </button>
                                                 )}
                                             </div>
@@ -257,11 +257,11 @@ export default function GymDashboard() {
                                                         <p className={`text-sm font-black tracking-widest uppercase mb-4 ${
                                                             result.status === "checked_in" ? "text-emerald-600" : "text-amber-600"
                                                         }`}>
-                                                            {result.status === "checked_in" ? "ACCESS GRANTED" : "ALREADY IN FACILITY"}
+                                                            {result.status === "checked_in" ? "Checked In" : "Already Here"}
                                                         </p>
                                                         {result.membership && (
                                                             <div className="border-2 border-theme-strong bg-theme-raised p-4 text-sm text-left">
-                                                                <div className="text-[10px] font-black text-theme-muted uppercase tracking-widest mb-1">ACTIVE PROTOCOL</div>
+                                                                <div className="text-[10px] font-black text-theme-muted uppercase tracking-widest mb-1">Membership</div>
                                                                 <div className="font-black text-theme uppercase">{result.membership.planName}</div>
                                                                 <div className="text-[10px] font-bold text-slate-600 uppercase mt-1">EXPIRES: {formatDate(result.membership.endDate)}</div>
                                                             </div>
@@ -270,7 +270,7 @@ export default function GymDashboard() {
                                                 ) : (
                                                     <>
                                                         <h3 className="text-2xl font-black uppercase font-['Syncopate'] text-red-600 mb-1">
-                                                            ACCESS DENIED
+                                                            Not Found
                                                         </h3>
                                                         {result.errorDetails ? (
                                                             <DetailedErrorPanel error={result.errorDetails} className="mt-2 text-left" />
@@ -284,7 +284,7 @@ export default function GymDashboard() {
                                                     onClick={resetResult}
                                                     className="mt-6 w-full py-4 font-black uppercase tracking-widest border-2 border-theme-strong bg-black text-white hover:bg-transparent hover:text-theme transition-colors"
                                                 >
-                                                    NEXT SCAN
+                                                    Next Person
                                                 </button>
                                             </div>
                                         </div>
@@ -296,9 +296,9 @@ export default function GymDashboard() {
 
                     <div className="grid grid-cols-2 gap-3 md:gap-4">
                         {[
-                            { label: "TOTAL ATHLETES", value: stats.totalMembers, icon: Users, hover: "hover:bg-blue-400 hover:text-theme" },
-                            { label: "TODAY'S OPS", value: stats.todayCheckIns, icon: Activity, hover: "hover:bg-[#ccff00] hover:text-theme" },
-                            { label: "ACTIVE PROTOCOLS", value: stats.activeMemberships, icon: TrendingUp, hover: "hover:bg-emerald-400 hover:text-theme" },
+                            { label: "Total Members", value: stats.totalMembers, icon: Users, hover: "hover:bg-blue-400 hover:text-theme" },
+                            { label: "Check-Ins Today", value: stats.todayCheckIns, icon: Activity, hover: "hover:bg-[#ccff00] hover:text-theme" },
+                            { label: "Active Memberships", value: stats.activeMemberships, icon: TrendingUp, hover: "hover:bg-emerald-400 hover:text-theme" },
                             { label: "EXPIRING SOON", value: stats.expiringSoon, icon: AlertTriangle, hover: "hover:bg-amber-400 hover:text-theme" },
                         ].map((stat, i) => (
                             <motion.div
@@ -332,7 +332,7 @@ export default function GymDashboard() {
                         <div className="p-4 md:p-5 border-b-4 border-theme-strong bg-theme-sidebar flex items-center justify-between relative z-10">
                             <h3 className="font-black uppercase tracking-widest flex items-center gap-2 md:gap-3 text-sm md:text-base text-black">
                                 <span className="h-2 w-2 -full bg-[#ccff00] animate-pulse" />
-                                LIVE OPS
+                                Recent Check-Ins
                             </h3>
                             <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest px-2 md:px-3 py-1 bg-white text-green-500 border-2 border-theme-strong">
                                 {todayCheckIns?.length ?? 0} LOGGED
@@ -342,7 +342,7 @@ export default function GymDashboard() {
                             {!todayCheckIns || todayCheckIns.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center p-8 text-theme-muted">
                                     <Activity className="h-12 w-12 mb-4 opacity-30" />
-                                    <p className="text-xs font-black uppercase tracking-widest">AWAITING SIGNAL</p>
+                                    <p className="text-xs font-black uppercase tracking-widest">No check-ins yet</p>
                                 </div>
                             ) : (
                                 <div className="divide-y-2 divide-black">
@@ -384,7 +384,7 @@ export default function GymDashboard() {
                         <div className="p-4 md:p-5 border-b-4 border-theme-strong bg-amber-500 flex items-center justify-between relative z-10">
                             <h3 className="font-black uppercase tracking-widest flex items-center gap-2 md:gap-3 text-theme text-sm md:text-base">
                                 <AlertTriangle className="h-4 w-4 md:h-5 md:w-5" />
-                                ACTION REQUIRED
+                                Needs Attention
                             </h3>
                             <Link to="/members" className="text-[9px] md:text-[10px] font-black uppercase tracking-widest border-2 border-theme-strong bg-theme-raised px-2 md:px-3 py-1 hover:bg-black hover:text-white transition-colors shadow-[4px_4px_0px_0px_var(--border-strong)]">
                                 VIEW ALL
@@ -394,7 +394,7 @@ export default function GymDashboard() {
                             {!expiringMemberships || expiringMemberships.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center p-8 text-theme-muted">
                                     <CheckCircle2 className="h-12 w-12 mb-4 opacity-30" />
-                                    <p className="text-xs font-black uppercase tracking-widest">SYSTEMS NOMINAL</p>
+                                    <p className="text-xs font-black uppercase tracking-widest">All good</p>
                                 </div>
                             ) : (
                                 <div className="divide-y-2 divide-black">
