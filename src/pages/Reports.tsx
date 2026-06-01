@@ -41,7 +41,7 @@ export default function Reports() {
 
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {[
-          { label: "Revenue", value: `$${totalRevenue.toLocaleString()}`, icon: DollarSign },
+          { label: "Revenue", value: `ETB ${totalRevenue.toLocaleString()}`, icon: DollarSign },
           { label: "Total Athletes", value: stats.totalMembers, icon: Users },
           { label: "Active Plans", value: stats.activeMemberships, icon: Activity },
           { label: "Expiring Soon", value: stats.expiringSoon, icon: CalendarDays },
@@ -76,7 +76,7 @@ export default function Reports() {
                   <p className="text-xs font-bold uppercase text-theme-muted tracking-wider">{m.planName}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-black uppercase text-theme">${m.amountPaid}</p>
+                  <p className="text-sm font-black uppercase text-theme">ETB {m.amountPaid}</p>
                   <p className="text-xs font-bold uppercase text-theme-muted tracking-wider">{formatDate(m.startDate)}</p>
                 </div>
               </div>

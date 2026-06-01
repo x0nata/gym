@@ -261,7 +261,7 @@ export default function MemberDetail() {
               </select>
             </div>
             <div className="space-y-2">
-              <label className="block font-['Syncopate'] text-xs font-bold uppercase tracking-widest text-theme-muted">Amount ($)</label>
+              <label className="block font-['Syncopate'] text-xs font-bold uppercase tracking-widest text-theme-muted">Amount (ETB)</label>
               <input
                 className="w-full bg-theme-raised border-4 border-theme-strong px-4 py-3 font-bold focus:outline-none focus:ring-0 shadow-[2px_2px_0px_0px_var(--border-strong)]"
                 type="number"
