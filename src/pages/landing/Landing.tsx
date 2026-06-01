@@ -66,7 +66,7 @@ export default function Landing() {
                <p className="text-base md:text-xl font-medium">Scan, sign, lift. Get members from the door to the floor in 20 seconds flat.</p>
              </div>
           </div>
-          <div className="flex-1 p-6 md:p-12 text-black bg-[#FDFCF8] hover:text-theme  group relative overflow-hidden transition-colors flex flex-col justify-between">
+          <div className="flex-1 p-6 md:p-12 text-black bg-theme-sidebar hover:text-theme  group relative overflow-hidden transition-colors flex flex-col justify-between">
              <Shield className="w-10 h-10 md:w-16 md:h-16 text-green-500 mb-4 md:mb-6 group-hover:scale-110 transition-transform group-hover:text-theme" />
              <div>
                <h3 className="text-2xl md:text-4xl font-black uppercase mb-3 md:mb-4 font-['Syncopate']">Ironclad Security</h3>
