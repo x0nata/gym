@@ -32,18 +32,18 @@ export default function Analytics() {
             <BarChart3 className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-[10px] uppercase font-black tracking-[0.2em] text-theme-muted">Metrics</p>
-            <h1 className="text-2xl md:text-3xl font-black uppercase font-['Syncopate'] text-theme">Performance Grid</h1>
+            <p className="text-[10px] uppercase font-black tracking-[0.2em] text-theme-muted">Stats</p>
+            <h1 className="text-2xl md:text-3xl font-black uppercase font-['Syncopate'] text-theme">Stats</h1>
           </div>
         </div>
       </motion.section>
 
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {[
-          { label: "Valid Membership Rate", value: `${activeRate}%`, icon: TrendingUp },
-          { label: "Retention", value: `${retentionRate}%`, icon: Target },
-          { label: "Check-ins Today", value: stats.todayCheckIns, icon: Activity },
-          { label: "Expiring Soon", value: stats.expiringSoon, icon: CalendarClock },
+          { label: "Active members", value: `${activeRate}%`, icon: TrendingUp },
+          { label: "Keeping members", value: `${retentionRate}%`, icon: Target },
+          { label: "Check-ins today", value: stats.todayCheckIns, icon: Activity },
+          { label: "Expiring soon", value: stats.expiringSoon, icon: CalendarClock },
         ].map((item, idx) => (
           <motion.div
             key={item.label}
@@ -61,17 +61,17 @@ export default function Analytics() {
 
       <section className="grid lg:grid-cols-2 gap-4 md:gap-4">
         <div className="border-4 border-theme-strong bg-theme-raised p-4 md:p-5 shadow-[4px_4px_0px_0px_var(--border-strong)]">
-          <p className="text-xs font-black uppercase tracking-widest text-theme-muted font-['Syncopate']">Athlete Distribution</p>
+          <p className="text-xs font-black uppercase tracking-widest text-theme-muted font-['Syncopate']">Member breakdown</p>
           <div className="mt-4 space-y-3">
-            <MetricBar label="Members with valid plans" value={stats.activeMembers} total={stats.totalMembers} />
-            <MetricBar label="Members without valid plans" value={Math.max(0, stats.totalMembers - stats.activeMembers)} total={stats.totalMembers} />
+            <MetricBar label="Members with active plans" value={stats.activeMembers} total={stats.totalMembers} />
+            <MetricBar label="Members without active plans" value={Math.max(0, stats.totalMembers - stats.activeMembers)} total={stats.totalMembers} />
           </div>
         </div>
         <div className="border-4 border-theme-strong bg-theme-sidebar p-5 shadow-[4px_4px_0px_0px_var(--border-strong)]">
-          <p className="text-xs font-black uppercase tracking-widest text-theme-muted font-['Syncopate']">Core Totals</p>
+          <p className="text-xs font-black uppercase tracking-widest text-theme-muted font-['Syncopate']">Totals</p>
           <div className="mt-4 grid grid-cols-2 gap-3">
             <MiniMetric icon={Users} label="Total" value={stats.totalMembers} />
-            <MiniMetric icon={TrendingUp} label="Valid" value={stats.activeMembers} />
+            <MiniMetric icon={TrendingUp} label="Active" value={stats.activeMembers} />
             <MiniMetric icon={Target} label="Plans" value={stats.activeMemberships} />
             <MiniMetric icon={Activity} label="Today" value={stats.todayCheckIns} />
           </div>

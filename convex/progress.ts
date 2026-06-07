@@ -181,7 +181,7 @@ export const deleteProgressLog = mutation({
 
         const log = await ctx.db.get(args.logId);
         if (!log || log.memberId !== user.memberId) {
-            throw new Error("Log not found or unauthorized");
+            throw new Error("Log not found");
         }
 
         await ctx.db.delete(args.logId);

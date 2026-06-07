@@ -17,8 +17,8 @@ export class AppErrorBoundary extends Component<Props, State> {
   static getDerivedStateFromError(error: unknown): State {
     return {
       error: toDisplayError(error, {
-        title: "Unexpected application error",
-        fallbackMessage: "Something went wrong while rendering this page.",
+        title: "Something went wrong",
+        fallbackMessage: "Something went wrong.",
       }),
     };
   }
@@ -46,8 +46,8 @@ export class AppErrorBoundary extends Component<Props, State> {
               <ShieldAlert className="h-5 w-5 text-red-600" />
             </div>
             <div>
-              <p className="text-xs font-black uppercase tracking-widest text-theme-muted">System fault</p>
-              <h1 className="text-lg font-black uppercase font-['Syncopate']">Runtime exception</h1>
+              <p className="text-xs font-black uppercase tracking-widest text-theme-muted">Error</p>
+              <h1 className="text-lg font-black uppercase font-['Syncopate']">Oops</h1>
             </div>
           </div>
 
@@ -58,7 +58,7 @@ export class AppErrorBoundary extends Component<Props, State> {
               className="h-11 px-4 border-2 border-theme-strong bg-black text-white text-xs font-black uppercase tracking-widest inline-flex items-center gap-2 hover:bg-theme-raised hover:text-theme transition-colors"
             >
               <RefreshCcw className="h-4 w-4" />
-              Reload app
+              Reload
             </button>
           </div>
         </div>

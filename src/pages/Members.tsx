@@ -69,8 +69,8 @@ export default function Members() {
     } catch (err: unknown) {
       setError(
         toDisplayError(err, {
-          title: "Invitation failed",
-          fallbackMessage: "We could not create the invitation. Please try again.",
+          title: "Invite failed",
+          fallbackMessage: "Could not make the invite. Try again.",
         })
       );
     }
@@ -90,8 +90,8 @@ export default function Members() {
     } catch (err: unknown) {
       setError(
         toDisplayError(err, {
-          title: "Revoke failed",
-          fallbackMessage: "We could not revoke this invitation. Please try again.",
+          title: "Cancel failed",
+          fallbackMessage: "Could not cancel this invite. Try again.",
         })
       );
     }
@@ -106,8 +106,8 @@ export default function Members() {
     } catch (err: unknown) {
       setError(
         toDisplayError(err, {
-          title: "Regeneration failed",
-          fallbackMessage: "We could not regenerate this invitation. Please try again.",
+          title: "Could not make new code",
+          fallbackMessage: "Could not make a new code. Try again.",
         })
       );
     }
@@ -126,8 +126,8 @@ export default function Members() {
               <Users className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-700">Athletes</p>
-              <h1 className="text-2xl md:text-3xl font-black uppercase font-['Syncopate']">Roster Control</h1>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-700">Members</p>
+              <h1 className="text-2xl md:text-3xl font-black uppercase font-['Syncopate']">Member List</h1>
             </div>
           </div>
           <button
@@ -138,7 +138,7 @@ export default function Members() {
             className="h-11 px-4 border-2 border-theme-strong bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-theme-raised hover:text-theme transition-colors inline-flex items-center gap-2"
           >
             <UserPlus className="h-4 w-4" />
-            Invite athlete
+            Invite member
           </button>
         </div>
 
@@ -148,7 +148,7 @@ export default function Members() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name or phone"
+              placeholder="Search name or phone"
               className="w-full h-11 border-2 border-theme-strong pl-10 pr-3 text-sm font-bold"
             />
           </div>
@@ -158,17 +158,17 @@ export default function Members() {
           <table className="w-full min-w-[720px]">
             <thead>
               <tr className="border-b-2 border-theme-strong text-left text-[11px] font-black uppercase tracking-[0.18em] text-theme-muted">
-                <th className="px-4 py-3">Athlete</th>
+                <th className="px-4 py-3">Member</th>
                 <th className="px-4 py-3">Contact</th>
                 <th className="px-4 py-3">Joined</th>
-                <th className="px-4 py-3 text-right">Open</th>
+                <th className="px-4 py-3 text-right">View</th>
               </tr>
             </thead>
             <tbody>
               {!filtered || filtered.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="py-16 text-center text-theme-muted font-black uppercase tracking-wider">
-                    {members === undefined ? "Loading..." : "No athletes found"}
+                    {members === undefined ? "Loading..." : "No members found"}
                   </td>
                 </tr>
               ) : (
@@ -184,7 +184,7 @@ export default function Members() {
         <div className="md:hidden divide-y-2 divide-black">
           {!filtered || filtered.length === 0 ? (
             <div className="py-16 text-center text-theme-muted font-black uppercase tracking-wider">
-              {members === undefined ? "Loading..." : "No athletes found"}
+              {members === undefined ? "Loading..." : "No members found"}
             </div>
           ) : (
             filtered.map((member) => (
@@ -209,11 +209,11 @@ export default function Members() {
 
       <section className="border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)] overflow-hidden">
         <div className="p-4 border-b-4 border-theme-strong bg-sidebar text-black flex items-center justify-between">
-          <p className="text-xs font-black uppercase tracking-[0.2em]">Invitation queue</p>
-          <p className="text-[10px] md:text-xs font-black uppercase">{(invitations ?? []).filter((inv) => inv.status === "pending").length} pending</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em]">Invites</p>
+          <p className="text-[10px] md:text-xs font-black uppercase">{(invitations ?? []).filter((inv) => inv.status === "pending").length} waiting</p>
         </div>
         {!invitations || invitations.length === 0 ? (
-          <div className="p-10 text-center text-theme-muted font-black uppercase tracking-wider">No invitations yet</div>
+          <div className="p-10 text-center text-theme-muted font-black uppercase tracking-wider">No invites yet</div>
         ) : (
           <div className="divide-y divide-black/10">
             {invitations.slice(0, 8).map((inv) => (
@@ -249,7 +249,7 @@ export default function Members() {
               className="relative w-full max-w-md border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)] mx-4"
             >
               <div className="p-3 md:p-4 border-b-4 border-theme-strong bg-black text-white flex items-center justify-between">
-                <p className="text-xs md:text-sm font-black uppercase tracking-widest">{modal === "invite" ? "Invite athlete" : "Invitation code"}</p>
+                <p className="text-xs md:text-sm font-black uppercase tracking-widest">{modal === "invite" ? "Invite member" : "Invite code"}</p>
                 <button onClick={() => setModal(null)} className="h-7 w-7 md:h-8 md:w-8 border-2 border-white flex items-center justify-center"><X className="h-3 w-3 md:h-4 md:w-4" /></button>
               </div>
               <div className="p-4 md:p-5">
@@ -265,14 +265,14 @@ export default function Members() {
                       <Phone className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone" required className="h-10 w-full border-2 border-theme-strong pl-10 pr-3 text-sm font-bold" />
                     </div>
-                    <button type="submit" className="h-10 w-full border-2 border-theme-strong bg-[#ccff00] text-theme text-xs font-black uppercase tracking-widest">Create invite</button>
+                    <button type="submit" className="h-10 w-full border-2 border-theme-strong bg-[#ccff00] text-theme text-xs font-black uppercase tracking-widest">Make invite</button>
                   </form>
                 )}
 
                 {modal === "show-code" && (
                   <div className="space-y-4">
                     <div className="p-4 border-2 border-theme-strong bg-theme-sidebar">
-                      <p className="text-xs font-black uppercase tracking-wider text-theme-muted">Share this code</p>
+                      <p className="text-xs font-black uppercase tracking-wider text-theme-muted">Give them this code</p>
                       <div className="mt-2 flex items-center gap-2 p-2 border-2 border-theme-strong bg-theme-raised">
                         <Ticket className="h-4 w-4" />
                         <code className="flex-1 font-black text-sm">{invitationCode}</code>

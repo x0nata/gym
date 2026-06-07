@@ -60,7 +60,7 @@ export function useQrScanner({
         if (attempts++ < 60) {
           rafId = requestAnimationFrame(trySetup);
         } else {
-          setError("Scanner container not found");
+          setError("Scanner not found");
         }
         return;
       }
@@ -116,12 +116,12 @@ export function useQrScanner({
   const capture = useCallback(async () => {
     const video = videoRef.current;
     if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
-      setError("Camera not ready. Please wait.");
+      setError("Camera not ready. Wait a moment.");
       return;
     }
     const engine = engineRef.current;
     if (!engine) {
-      setError("Scanner engine not ready. Try again.");
+      setError("Scanner not ready. Try again.");
       return;
     }
 
@@ -153,7 +153,7 @@ export function useQrScanner({
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes("No QR code")) {
         console.log("[QR] Not found — try again");
-        setError("No QR code found. Try repositioning and tap Capture again.");
+        setError("No QR code found. Move closer and try again.");
       } else {
         console.error("[QR] Scan error:", msg);
         setError("Scan failed. Try again.");

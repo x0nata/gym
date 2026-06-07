@@ -33,8 +33,8 @@ export default function Reports() {
             <ClipboardList className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-700">Intel</p>
-            <h1 className="text-2xl md:text-3xl font-black uppercase font-['Syncopate'] text-theme">Operational Report</h1>
+            <p className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-700">Reports</p>
+            <h1 className="text-2xl md:text-3xl font-black uppercase font-['Syncopate'] text-theme">Reports</h1>
           </div>
         </div>
       </motion.section>
@@ -42,9 +42,9 @@ export default function Reports() {
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {[
           { label: "Revenue", value: `ETB ${totalRevenue.toLocaleString()}`, icon: DollarSign },
-          { label: "Total Athletes", value: stats.totalMembers, icon: Users },
-          { label: "Active Plans", value: stats.activeMemberships, icon: Activity },
-          { label: "Expiring Soon", value: stats.expiringSoon, icon: CalendarDays },
+          { label: "Total members", value: stats.totalMembers, icon: Users },
+          { label: "Active plans", value: stats.activeMemberships, icon: Activity },
+          { label: "Expiring soon", value: stats.expiringSoon, icon: CalendarDays },
         ].map((item, idx) => (
           <motion.div
             key={item.label}
@@ -63,10 +63,10 @@ export default function Reports() {
       <section className="border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)] overflow-hidden">
         <div className="p-4 border-b-4 border-theme-strong bg-white text-black flex items-center gap-2">
           <FileText className="h-4 w-4 text-[#ccff00]" />
-          <p className="font-black uppercase tracking-widest text-sm font-['Syncopate']">Recent transactions</p>
+          <p className="font-black uppercase tracking-widest text-sm font-['Syncopate']">Recent payments</p>
         </div>
         {memberships.length === 0 ? (
-          <div className="p-10 text-center text-theme-muted font-black uppercase tracking-wider">No transactions yet</div>
+          <div className="p-10 text-center text-theme-muted font-black uppercase tracking-wider">No payments yet</div>
         ) : (
           <div className="divide-y-2 divide-theme-strong">
             {memberships.slice(0, 12).map((m) => (

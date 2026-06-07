@@ -82,7 +82,7 @@ export const updateClass = mutation({
 
         const existingClass = await ctx.db.get(args.classId);
         if (!existingClass || existingClass.coachId !== user.coachId) {
-            throw new Error("Class not found or unauthorized");
+            throw new Error("Class not found");
         }
 
         const updates: Record<string, unknown> = { updatedAt: Date.now() };
@@ -115,7 +115,7 @@ export const rescheduleClass = mutation({
 
         const existingClass = await ctx.db.get(args.classId);
         if (!existingClass || existingClass.coachId !== user.coachId) {
-            throw new Error("Class not found or unauthorized");
+            throw new Error("Class not found");
         }
 
         await ctx.db.patch(args.classId, {
@@ -139,7 +139,7 @@ export const cancelClass = mutation({
 
         const existingClass = await ctx.db.get(args.classId);
         if (!existingClass || existingClass.coachId !== user.coachId) {
-            throw new Error("Class not found or unauthorized");
+            throw new Error("Class not found");
         }
 
         await ctx.db.patch(args.classId, {
@@ -233,11 +233,11 @@ export const bookClass = mutation({
         if (!classItem) throw new Error("Class not found");
 
         if (classItem.status !== "scheduled") {
-            throw new Error("This class is not available for booking");
+            throw new Error("This class is not open for booking");
         }
 
         if (classItem.maxParticipants && classItem.currentParticipants >= classItem.maxParticipants) {
-            throw new Error("This class is fully booked");
+            throw new Error("This class is full");
         }
 
         const existingBooking = await ctx.db
@@ -248,7 +248,7 @@ export const bookClass = mutation({
             .filter((q) => q.eq(q.field("memberId"), user.memberId!))
             .first();
 
-        if (existingBooking) throw new Error("Already booked this class");
+        if (existingBooking) throw new Error("You already booked this class");
 
         const bookingId = await ctx.db.insert("classBookings", {
             classId: args.classId,
@@ -278,7 +278,7 @@ export const cancelBooking = mutation({
 
         const booking = await ctx.db.get(args.bookingId);
         if (!booking || booking.memberId !== user.memberId) {
-            throw new Error("Booking not found or unauthorized");
+            throw new Error("Booking not found");
         }
 
         await ctx.db.patch(args.bookingId, {
@@ -396,7 +396,7 @@ export const confirmBooking = mutation({
 
         const classItem = await ctx.db.get(booking.classId);
         if (!classItem || classItem.coachId !== user.coachId) {
-            throw new Error("Unauthorized");
+            throw new Error("Not allowed");
         }
 
         await ctx.db.patch(args.bookingId, { status: "confirmed" });
@@ -419,7 +419,7 @@ export const markAttendance = mutation({
 
         const classItem = await ctx.db.get(booking.classId);
         if (!classItem || classItem.coachId !== user.coachId) {
-            throw new Error("Unauthorized");
+            throw new Error("Not allowed");
         }
 
         await ctx.db.patch(args.bookingId, {

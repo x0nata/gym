@@ -16,7 +16,7 @@ export const scanAndCheckIn = mutation({
     if (!member || member.gymId !== gymUser.gymId) {
       throw new ConvexError({
         code: "MEMBER_NOT_FOUND",
-        message: "No member found with this QR code",
+        message: "No member found with this code",
       });
     }
 
@@ -35,7 +35,7 @@ export const scanAndCheckIn = mutation({
     if (!activeMembership) {
       throw new ConvexError({
         code: "NO_ACTIVE_MEMBERSHIP",
-        message: `${member.firstName} ${member.lastName} has no active membership. Payment required.`,
+        message: `${member.firstName} ${member.lastName} has no active plan. Payment required.`,
       });
     }
 
@@ -44,7 +44,7 @@ export const scanAndCheckIn = mutation({
       await ctx.db.patch(activeMembership._id, { status: "expired" });
       throw new ConvexError({
         code: "MEMBERSHIP_EXPIRED",
-        message: `${member.firstName} ${member.lastName}'s membership has expired. Please renew.`,
+        message: `${member.firstName} ${member.lastName}'s plan has expired. Renew now.`,
       });
     }
 
@@ -86,8 +86,8 @@ export const scanAndCheckIn = mutation({
       await ctx.db.insert("notifications", {
         memberId: member._id,
         type: "membership_expiring",
-        title: "Membership Expiring Soon",
-        message: `${member.firstName} ${member.lastName}'s ${activeMembership.planName} membership expires in ${daysRemaining} day(s).`,
+        title: "Plan Expiring Soon",
+        message: `${member.firstName} ${member.lastName}'s ${activeMembership.planName} plan ends in ${daysRemaining} day(s).`,
         isRead: false,
         createdAt: now,
         audience: "gym",
@@ -96,8 +96,8 @@ export const scanAndCheckIn = mutation({
       await ctx.db.insert("notifications", {
         memberId: member._id,
         type: "membership_expiring",
-        title: "Your Membership is Expiring",
-        message: `Your ${activeMembership.planName} membership expires in ${daysRemaining} day(s). Please renew to continue.`,
+        title: "Plan Expiring Soon",
+        message: `Your ${activeMembership.planName} plan ends in ${daysRemaining} day(s). Renew to keep access.`,
         isRead: false,
         createdAt: now,
         audience: "member",

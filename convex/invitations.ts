@@ -37,7 +37,7 @@ export const createMemberInvitation = mutation({
     if (existingMemberWithPhone) {
       throw new ConvexError({
         code: "PHONE_EXISTS",
-        message: "A member with this phone number already exists in your gym.",
+        message: "A member with this phone number already exists.",
       });
     }
 
@@ -75,8 +75,8 @@ export const createMemberInvitation = mutation({
     await ctx.db.insert("notifications", {
       memberId,
       type: "welcome",
-      title: "Member Invited",
-      message: `${args.firstName} ${args.lastName} was invited successfully.`,
+      title: "Member invited",
+      message: `${args.firstName} ${args.lastName} was invited.`,
       isRead: false,
       createdAt: now,
       audience: "gym",
@@ -135,15 +135,15 @@ export const revoke = mutation({
     const gymUser = await requireGymUser(ctx, args.sessionToken);
     const invitation = await ctx.db.get(args.invitationId);
     if (!invitation) {
-      throw new ConvexError({ code: "NOT_FOUND", message: "Invitation not found." });
+      throw new ConvexError({ code: "NOT_FOUND", message: "Invite not found." });
     }
 
     if (invitation.gymId !== gymUser.gymId) {
-      throw new ConvexError({ code: "FORBIDDEN", message: "Invitation does not belong to your gym." });
+      throw new ConvexError({ code: "FORBIDDEN", message: "This invite is not for your gym." });
     }
 
     if (invitation.status === "claimed") {
-      throw new ConvexError({ code: "ALREADY_CLAIMED", message: "Claimed invitation cannot be revoked." });
+      throw new ConvexError({ code: "ALREADY_CLAIMED", message: "You can't cancel a claimed invite." });
     }
 
     await ctx.db.patch(args.invitationId, {
@@ -161,15 +161,15 @@ export const regenerate = mutation({
     const gymUser = await requireGymUser(ctx, args.sessionToken);
     const invitation = await ctx.db.get(args.invitationId);
     if (!invitation) {
-      throw new ConvexError({ code: "NOT_FOUND", message: "Invitation not found." });
+      throw new ConvexError({ code: "NOT_FOUND", message: "Invite not found." });
     }
 
     if (invitation.gymId !== gymUser.gymId) {
-      throw new ConvexError({ code: "FORBIDDEN", message: "Invitation does not belong to your gym." });
+      throw new ConvexError({ code: "FORBIDDEN", message: "This invite is not for your gym." });
     }
 
     if (invitation.status === "claimed") {
-      throw new ConvexError({ code: "ALREADY_CLAIMED", message: "Cannot regenerate a claimed invitation." });
+      throw new ConvexError({ code: "ALREADY_CLAIMED", message: "You can't remake a claimed invite." });
     }
 
     const now = Date.now();

@@ -62,7 +62,7 @@ export default function GymDashboard() {
             } catch (err: unknown) {
                 const details = toDisplayError(err, {
                     title: "Check-in failed",
-                    fallbackMessage: "Scan failed. Please try again.",
+                    fallbackMessage: "Scan failed. Try again.",
                 });
                 setResult({ status: "error", message: details.message, errorDetails: details });
             } finally {
@@ -116,7 +116,7 @@ export default function GymDashboard() {
                                 </div>
                                 <div>
                                     <h2 className="font-black uppercase tracking-widest text-lg md:text-xl font-['Syncopate'] text-theme">Check In</h2>
-                                    <p className="text-[10px] md:text-xs font-bold text-slate-700 uppercase tracking-widest mt-1">Scan members at the door</p>
+                                    <p className="text-[10px] md:text-xs font-bold text-slate-700 uppercase tracking-widest mt-1">Check people in</p>
                                 </div>
                             </div>
                         </div>
@@ -160,7 +160,7 @@ export default function GymDashboard() {
                                                         type="text"
                                                         value={manualCode}
                                                         onChange={(e) => setManualCode(e.target.value.toUpperCase())}
-                                                        placeholder="ENTER ID..."
+                                                        placeholder="Enter ID..."
                                                         className="w-full h-14 pl-12 pr-4 bg-theme-sidebar border-2 border-theme-strong text-theme font-black font-mono tracking-widest focus:outline-none focus:bg-[#ccff00]/10 focus:shadow-[4px_4px_0px_0px_var(--border-strong)] transition-all placeholder:text-theme-muted"
                                                         autoFocus
                                                     />
@@ -198,7 +198,7 @@ export default function GymDashboard() {
                                                         <div className="h-16 w-16 border-2 border-[#ccff00] bg-black flex items-center justify-center text-[#ccff00] group-hover:scale-110 transition-transform">
                                                             <Camera className="h-8 w-8" />
                                                         </div>
-                                                        <span className="text-sm font-black uppercase tracking-widest text-[#ccff00]">Turn On Camera</span>
+                                                        <span className="text-sm font-black uppercase tracking-widest text-[#ccff00]">Start camera</span>
                                                     </button>
                                                 )}
                                                 {cameraActive && (
@@ -214,9 +214,9 @@ export default function GymDashboard() {
                                                             className="w-full py-3 border-2 border-theme-strong bg-[#ccff00] text-black font-black uppercase tracking-widest hover:bg-[#b3e600] transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
                                                         >
                                                             {capturing ? (
-                                                                <><div className="h-5 w-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Capturing...</>
+                                                                <><div className="h-5 w-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Scanning...</>
                                                             ) : (
-                                                                "Capture QR Code"
+                                                                "Scan QR"
                                                             )}
                                                         </button>
                                                     </div>
@@ -233,7 +233,7 @@ export default function GymDashboard() {
                                                             }}
                                                             className="w-full py-2 border-2 border-theme-strong bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
                                                         >
-                                                            Retry camera
+                                                            Try again
                                                         </button>
                                                     </div>
                                                 )}
@@ -270,9 +270,9 @@ export default function GymDashboard() {
                                                         </p>
                                                         {result.membership && (
                                                             <div className="border-2 border-theme-strong bg-theme-raised p-4 text-sm text-left">
-                                                                <div className="text-[10px] font-black text-theme-muted uppercase tracking-widest mb-1">Membership</div>
+                                                                <div className="text-[10px] font-black text-theme-muted uppercase tracking-widest mb-1">Plan</div>
                                                                 <div className="font-black text-theme uppercase">{result.membership.planName}</div>
-                                                                <div className="text-[10px] font-bold text-slate-600 uppercase mt-1">EXPIRES: {formatDate(result.membership.endDate)}</div>
+                                                                <div className="text-[10px] font-bold text-slate-600 uppercase mt-1">Ends: {formatDate(result.membership.endDate)}</div>
                                                             </div>
                                                         )}
                                                     </>
@@ -293,7 +293,7 @@ export default function GymDashboard() {
                                                     onClick={resetResult}
                                                     className="mt-6 w-full py-4 font-black uppercase tracking-widest border-2 border-theme-strong bg-black text-white hover:bg-transparent hover:text-theme transition-colors"
                                                 >
-                                                    Next Person
+                                                    Next
                                                 </button>
                                             </div>
                                         </div>
@@ -305,10 +305,10 @@ export default function GymDashboard() {
 
                     <div className="grid grid-cols-2 gap-3 md:gap-4">
                         {[
-                            { label: "Total Members", value: stats.totalMembers, icon: Users, hover: "hover:bg-blue-400 hover:text-theme" },
-                            { label: "Check-Ins Today", value: stats.todayCheckIns, icon: Activity, hover: "hover:bg-[#ccff00] hover:text-theme" },
-                            { label: "Active Memberships", value: stats.activeMemberships, icon: TrendingUp, hover: "hover:bg-emerald-400 hover:text-theme" },
-                            { label: "EXPIRING SOON", value: stats.expiringSoon, icon: AlertTriangle, hover: "hover:bg-amber-400 hover:text-theme" },
+                            { label: "All members", value: stats.totalMembers, icon: Users, hover: "hover:bg-blue-400 hover:text-theme" },
+                            { label: "Visits today", value: stats.todayCheckIns, icon: Activity, hover: "hover:bg-[#ccff00] hover:text-theme" },
+                            { label: "Active plans", value: stats.activeMemberships, icon: TrendingUp, hover: "hover:bg-emerald-400 hover:text-theme" },
+                            { label: "Ending soon", value: stats.expiringSoon, icon: AlertTriangle, hover: "hover:bg-amber-400 hover:text-theme" },
                         ].map((stat, i) => (
                             <motion.div
                                 key={stat.label}
@@ -341,17 +341,17 @@ export default function GymDashboard() {
                         <div className="p-4 md:p-5 border-b-4 border-theme-strong bg-theme-sidebar flex items-center justify-between relative z-10">
                             <h3 className="font-black uppercase tracking-widest flex items-center gap-2 md:gap-3 text-sm md:text-base text-black">
                                 <span className="h-2 w-2 -full bg-[#ccff00] animate-pulse" />
-                                Recent Check-Ins
+                                Recent visits
                             </h3>
                             <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest px-2 md:px-3 py-1 bg-white text-green-500 border-2 border-theme-strong">
-                                {todayCheckIns?.length ?? 0} LOGGED
+                                {todayCheckIns?.length ?? 0} Done
                             </span>
                         </div>
                         <div className="flex-1 overflow-auto relative z-10 bg-theme-raised/80">
                             {!todayCheckIns || todayCheckIns.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center p-8 text-theme-muted">
                                     <Activity className="h-12 w-12 mb-4 opacity-30" />
-                                    <p className="text-xs font-black uppercase tracking-widest">No check-ins yet</p>
+                                    <p className="text-xs font-black uppercase tracking-widest">No visits yet</p>
                                 </div>
                             ) : (
                                 <div className="divide-y-2 divide-black">
@@ -393,10 +393,10 @@ export default function GymDashboard() {
                         <div className="p-4 md:p-5 border-b-4 border-theme-strong bg-amber-500 flex items-center justify-between relative z-10">
                             <h3 className="font-black uppercase tracking-widest flex items-center gap-2 md:gap-3 text-theme text-sm md:text-base">
                                 <AlertTriangle className="h-4 w-4 md:h-5 md:w-5" />
-                                Needs Attention
+                                Needs attention
                             </h3>
                             <Link to="/members" className="text-[9px] md:text-[10px] font-black uppercase tracking-widest border-2 border-theme-strong bg-theme-raised px-2 md:px-3 py-1 hover:bg-black hover:text-white transition-colors shadow-[4px_4px_0px_0px_var(--border-strong)]">
-                                VIEW ALL
+                                See all
                             </Link>
                         </div>
                         <div className="flex-1 overflow-auto relative z-10 bg-theme-raised">
@@ -426,7 +426,7 @@ export default function GymDashboard() {
                                             </div>
                                             <div className="text-right flex flex-col items-end">
                                                 <div className="text-[10px] font-black tracking-widest text-white bg-amber-500 px-2 py-1 uppercase border-2 border-theme-strong mb-1">
-                                                    EXPIRING
+                                                    Ending
                                                 </div>
                                                 <div className="text-xs font-bold text-theme uppercase tracking-widest">
                                                     {formatTimeAgo(em.endDate)}

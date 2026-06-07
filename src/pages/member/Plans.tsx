@@ -63,9 +63,9 @@ export default function Plans() {
         <div className="p-4 md:p-6 md:p-8 border-b-4 border-theme-strong bg-theme-sidebar text-theme">
           <div className="flex items-start justify-between gap-3 md:gap-4">
             <div>
-              <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-indigo-500">Member Protocol</p>
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-black uppercase font-['Syncopate'] text-theme mt-1 md:mt-2">Daily Mission</h1>
-              <p className="mt-1 md:mt-3 text-xs md:text-sm font-bold text-theme-muted uppercase tracking-wider">Train, recover, and execute.</p>
+              <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-indigo-500">Your plan</p>
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-black uppercase font-['Syncopate'] text-theme mt-1 md:mt-2">Today</h1>
+              <p className="mt-1 md:mt-3 text-xs md:text-sm font-bold text-theme-muted uppercase tracking-wider">Train, rest, and repeat.</p>
             </div>
             <div className="h-10 w-10 md:h-14 md:w-14 bg-indigo-500/10 border-2 border-theme-strong text-indigo-500 flex items-center justify-center shrink-0">
               <Sparkles className="h-5 w-5 md:h-7 md:w-7" />
@@ -78,12 +78,12 @@ export default function Plans() {
             <p className="text-xl md:text-2xl font-black font-['Syncopate'] mt-1 md:mt-2">{dayLabels[dayIndex]}</p>
           </div>
           <div className="border-2 border-theme-strong p-3 md:p-4 bg-theme-raised">
-            <p className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] font-black text-theme-muted">Workout Block</p>
+            <p className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] font-black text-theme-muted">Workout</p>
             <p className="text-xs md:text-sm font-black uppercase mt-1 md:mt-2">{todayWorkout?.name ?? "Recovery / Free Session"}</p>
           </div>
           <div className="border-2 border-theme-strong p-3 md:p-4 bg-theme-raised">
-            <p className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] font-black text-theme-muted">Nutrition Block</p>
-            <p className="text-xs md:text-sm font-black uppercase mt-1 md:mt-2">{todayMeals.length} meals queued</p>
+            <p className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] font-black text-theme-muted">Meals</p>
+            <p className="text-xs md:text-sm font-black uppercase mt-1 md:mt-2">{todayMeals.length} meals planned</p>
           </div>
         </div>
       </motion.section>
@@ -97,11 +97,11 @@ export default function Plans() {
         >
           <div className="p-4 md:p-5 border-b-4 border-theme-strong bg-theme-sidebar text-theme flex items-center gap-2 md:gap-3">
             <Dumbbell className="h-4 w-4 md:h-5 md:w-5 text-indigo-500" />
-            <h2 className="font-black uppercase tracking-widest text-sm md:text-base">Workout Protocol</h2>
+            <h2 className="font-black uppercase tracking-widest text-sm md:text-base">Workout plan</h2>
           </div>
           {!workoutPlan ? (
             <div className="p-8 text-center">
-              <p className="font-bold uppercase text-theme-muted tracking-wider">No active workout plan</p>
+              <p className="font-bold uppercase text-theme-muted tracking-wider">No workout plan</p>
             </div>
           ) : (
             <div className="p-4 md:p-5 space-y-3 md:space-y-4">
@@ -142,11 +142,11 @@ export default function Plans() {
         >
           <div className="p-4 md:p-5 border-b-4 border-theme-strong bg-theme-sidebar text-theme flex items-center gap-2 md:gap-3">
             <Utensils className="h-4 w-4 md:h-5 md:w-5 text-indigo-500" />
-            <h2 className="font-black uppercase tracking-widest text-sm md:text-base">Fuel Protocol</h2>
+            <h2 className="font-black uppercase tracking-widest text-sm md:text-base">Meal plan</h2>
           </div>
           {!mealPlan ? (
             <div className="p-8 text-center">
-              <p className="font-bold uppercase text-theme-muted tracking-wider">No active meal plan</p>
+              <p className="font-bold uppercase text-theme-muted tracking-wider">No meal plan</p>
             </div>
           ) : (
             <div className="p-5 space-y-4">
@@ -202,9 +202,9 @@ export default function Plans() {
       >
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500">Execution Rule</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500">Daily rule</p>
             <p className="mt-2 text-sm font-bold uppercase tracking-wider text-theme">
-              Hit the schedule. Log consistency. Ask your coach before changing intensity.
+              Follow the plan. Stay consistent. Ask your coach before changing intensity.
             </p>
           </div>
           <div className="flex items-center gap-2 text-indigo-500 font-black uppercase text-xs tracking-wider">

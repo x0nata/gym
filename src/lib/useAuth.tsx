@@ -134,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         success: false,
         error: toDisplayError(error, {
           title: "Sign in failed",
-          fallbackMessage: "We could not sign you in. Please try again.",
+          fallbackMessage: "Couldn't sign you in. Try again.",
         }),
       };
     } finally {
@@ -155,8 +155,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return {
         success: false,
         error: toDisplayError(error, {
-          title: "Invitation verification failed",
-          fallbackMessage: "We could not verify the invitation. Please try again.",
+          title: "Invitation check failed",
+          fallbackMessage: "Couldn't verify the invitation. Try again.",
         }),
       };
     } finally {
@@ -182,7 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         success: false,
         error: toDisplayError(error, {
           title: "Account setup failed",
-          fallbackMessage: "We could not create your account. Please try again.",
+          fallbackMessage: "Couldn't create your account. Try again.",
         }),
       };
     } finally {
@@ -211,7 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         success: false,
         error: toDisplayError(error, {
           title: "Gym registration failed",
-          fallbackMessage: "We could not create your gym account. Please try again.",
+          fallbackMessage: "Couldn't create your gym account. Try again.",
         }),
       };
     } finally {

@@ -54,12 +54,12 @@ export default function UnifiedAuth() {
   const gymMode = role === "gym" ? mode : "signin";
 
   const submitLabel = useMemo(() => {
-    if (isLoading) return "PROCESSING...";
-    if (role === "gym" && gymMode === "register") return "ESTABLISH HQ";
-    if (role === "gym") return "ACCESS TERMINAL";
-    if (memberAuthMode === "first-time" && !memberInviteVerified) return "VERIFY INVITE";
-    if (memberAuthMode === "first-time" && memberInviteVerified) return "CREATE LOGIN";
-    return "ENTER FACILITY";
+    if (isLoading) return "LOADING...";
+    if (role === "gym" && gymMode === "register") return "CREATE ACCOUNT";
+    if (role === "gym") return "SIGN IN";
+    if (memberAuthMode === "first-time" && !memberInviteVerified) return "CHECK INVITE";
+    if (memberAuthMode === "first-time" && memberInviteVerified) return "SET PASSWORD";
+    return "SIGN IN";
   }, [isLoading, gymMode, role, memberAuthMode, memberInviteVerified]);
 
   const onChange = (key: keyof typeof form, value: string) => {
@@ -145,7 +145,7 @@ export default function UnifiedAuth() {
       <button
         onClick={toggleTheme}
         className="absolute top-3 right-3 md:top-6 md:right-6 z-50 p-2 md:p-3 bg-theme-sidebar border-2 border-theme-strong hover:bg-[#ccff00] hover:text-theme transition-colors shadow-[4px_4px_0px_0px_var(--border-strong)] text-theme"
-        aria-label="Toggle theme"
+        aria-label="Switch theme"
       >
         {theme === 'dark' ? <Sun className="w-4 h-4 md:w-5 md:h-5" /> : <Moon className="w-4 h-4 md:w-5 md:h-5" />}
       </button>
@@ -162,16 +162,16 @@ export default function UnifiedAuth() {
             key={role + mode}
             className="text-5xl lg:text-7xl font-black uppercase leading-[0.9] font-['Syncopate']"
           >
-            {role === "gym" ? "COMMAND" : "MEMBER"}
+            {role === "gym" ? "GYM" : "MEMBER"}
             <br />
             <span className="text-[#ccff00]">
-              {mode === "register" ? "INITIALIZE" : "ACCESS"}
+              {mode === "register" ? "SIGN UP" : "SIGN IN"}
             </span>
           </motion.h1>
         </div>
         <div className="border-l-4 border-[#ccff00] pl-6 py-2">
           <p className="text-xl font-bold uppercase tracking-wider text-theme-muted">
-            {role === "gym" ? "SECURE MANAGEMENT PROTOCOL" : "ATHLETE IDENTIFICATION"}
+            {role === "gym" ? "MANAGE YOUR GYM" : "MEMBER LOGIN"}
           </p>
         </div>
       </div>
@@ -201,7 +201,7 @@ export default function UnifiedAuth() {
                   : "text-theme-muted hover:text-theme"
               }`}
             >
-              HQ / Staff
+              Gym / Staff
             </button>
               <button
                 type="button"
@@ -220,7 +220,7 @@ export default function UnifiedAuth() {
                   : "text-theme-muted hover:text-theme"
               }`}
               >
-                User
+                Member
               </button>
             </div>
 
@@ -238,7 +238,7 @@ export default function UnifiedAuth() {
                       }}
                     className={`flex-1 pb-2 text-left font-bold uppercase ${memberAuthMode === "regular" ? "text-theme border-b-4 border-[#ccff00]" : "text-theme-muted"}`}
                   >
-                    Regular Login
+                    Sign In
                   </button>
                   <button
                     type="button"
@@ -251,7 +251,7 @@ export default function UnifiedAuth() {
                       }}
                     className={`flex-1 pb-2 text-left font-bold uppercase ${memberAuthMode === "first-time" ? "text-theme border-b-4 border-[#ccff00]" : "text-theme-muted"}`}
                   >
-                    First Time
+                    New Member
                   </button>
                 </div>
               )}
@@ -270,14 +270,14 @@ export default function UnifiedAuth() {
                     onClick={() => setMode("signin")}
                     className={`flex-1 pb-2 text-left font-bold uppercase ${gymMode === "signin" ? "text-theme border-b-4 border-[#ccff00]" : "text-theme-muted"}`}
                   >
-                    Authenticate
+                    Sign In
                   </button>
                   <button
                     type="button"
                     onClick={() => setMode("register")}
                     className={`flex-1 pb-2 text-left font-bold uppercase ${gymMode === "register" ? "text-theme border-b-4 border-[#ccff00]" : "text-theme-muted"}`}
                   >
-                    Establish
+                    Sign Up
                   </button>
                 </motion.div>
                 )}
@@ -285,7 +285,7 @@ export default function UnifiedAuth() {
 
             {role === "member" && memberAuthMode === "first-time" && !memberInviteVerified && (
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Access Code</label>
+                <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Invite Code</label>
                 <div className="relative">
                   <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme" />
                   <input
@@ -317,14 +317,14 @@ export default function UnifiedAuth() {
 
             {role === "member" && memberAuthMode === "first-time" && memberInviteVerified && (
               <div className="bg-emerald-50 border-2 border-emerald-500 p-4 text-emerald-700 font-bold">
-                Invite verified{memberDisplayName ? ` for ${memberDisplayName}` : ""}. Set your email and password.
+                Invite checked{memberDisplayName ? ` for ${memberDisplayName}` : ""}. Pick your email and password.
               </div>
             )}
 
             {role === "gym" && gymMode === "register" && (
               <>
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Facility Name</label>
+                  <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Gym Name</label>
                   <div className="relative">
                     <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme" />
                     <input 
@@ -337,7 +337,7 @@ export default function UnifiedAuth() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Comms Link (Phone)</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Phone</label>
                     <div className="relative">
                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme" />
                       <input 
@@ -349,7 +349,7 @@ export default function UnifiedAuth() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Sector (City)</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-theme-muted">City</label>
                     <div className="relative">
                       <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme" />
                       <input 
@@ -362,7 +362,7 @@ export default function UnifiedAuth() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Coordinates (Address)</label>
+                  <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Address</label>
                   <input 
                     value={form.address} 
                     onChange={(e) => onChange("address", e.target.value)} 
@@ -375,7 +375,7 @@ export default function UnifiedAuth() {
 
             {(role === "gym" || memberAuthMode === "regular" || (role === "member" && memberInviteVerified)) && (
               <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Identity (Email)</label>
+              <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Email</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme" />
                 <input
@@ -391,7 +391,7 @@ export default function UnifiedAuth() {
 
             {(role === "gym" || memberAuthMode === "regular" || (role === "member" && memberInviteVerified)) && (
               <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Passcode</label>
+              <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Password</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme" />
                 <input

@@ -28,7 +28,7 @@ export function DetailedErrorPanel({ error, className }: DetailedErrorPanelProps
             <details className="mt-2 border border-red-300 bg-white/70 p-2">
               <summary className="cursor-pointer text-[11px] font-black uppercase tracking-widest inline-flex items-center gap-1.5">
                 <Bug className="h-3.5 w-3.5" />
-                Error details
+                Details
               </summary>
               <div className="mt-2 space-y-1 text-[11px] font-mono break-all text-red-950">
                 {error.code && <p>Code: {error.code}</p>}

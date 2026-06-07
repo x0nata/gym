@@ -21,11 +21,11 @@ import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 const motivationalQuotes = [
-    { text: "DOMINATE TODAY.", author: "KINETIC HQ" },
-    { text: "NO EXCUSES. JUST RESULTS.", author: "KINETIC HQ" },
-    { text: "IRON FORGES IRON.", author: "KINETIC HQ" },
-    { text: "PAIN IS WEAKNESS LEAVING.", author: "KINETIC HQ" },
-    { text: "UNLEASH POWER.", author: "KINETIC HQ" }
+    { text: "Have a great workout.", author: "KINETIC HQ" },
+    { text: "Stay consistent.", author: "KINETIC HQ" },
+    { text: "Keep going.", author: "KINETIC HQ" },
+    { text: "You got this.", author: "KINETIC HQ" },
+    { text: "Do your best.", author: "KINETIC HQ" }
 ];
 
 function getDailyMotivation(): { text: string; author: string } {
@@ -119,7 +119,7 @@ export default function MemberDashboard() {
             >
                 <div>
                     <p className="text-[9px] md:text-xs font-black uppercase tracking-widest text-indigo-500 bg-indigo-500/10 px-2 py-1 inline-block mb-2 border-2 border-indigo-500">
-                        My Dashboard
+                        My page
                     </p>
                     <h1 className="text-2xl md:text-3xl lg:text-5xl font-black uppercase font-['Syncopate'] text-theme tracking-tighter">
                         {getGreeting()} <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-theme to-theme-muted">{member.firstName}</span>
@@ -144,7 +144,7 @@ export default function MemberDashboard() {
                     </div>
                     <div className="flex-1 flex items-center justify-between">
                         <div>
-                            <h3 className="font-black uppercase tracking-widest text-xs mb-1">Quote of the Day</h3>
+                            <h3 className="font-black uppercase tracking-widest text-xs mb-1">Daily quote</h3>
                             <div className="flex items-center gap-2">
                                 <p className="text-lg font-black font-['Syncopate'] uppercase italic leading-none">
                                     "{dailyMotivation.text}"
@@ -169,10 +169,10 @@ export default function MemberDashboard() {
                             <AlertCircle className="h-6 w-6 shrink-0 mt-0.5 text-red-500" />
                             <div>
                                 <h3 className="font-black uppercase tracking-widest text-red-500">
-                                    Membership Expires {daysRemaining === 0 ? 'TODAY' : daysRemaining === 1 ? 'TOMORROW' : `IN ${daysRemaining} DAYS`}
+                                    Plan ends {daysRemaining === 0 ? 'TODAY' : daysRemaining === 1 ? 'TOMORROW' : `IN ${daysRemaining} DAYS`}
                                 </h3>
                                 <p className="text-sm mt-1 font-bold text-theme">
-                                    Your {activeMembership.planName} membership {daysRemaining === 0 ? 'expires today' : `expires on ${formatDate(activeMembership.endDate)}`}. Renew soon.
+                                    Your {activeMembership.planName} plan {daysRemaining === 0 ? 'ends today' : `ends on ${formatDate(activeMembership.endDate)}`}. Renew soon.
                                 </p>
                             </div>
                         </div>
@@ -186,7 +186,7 @@ export default function MemberDashboard() {
                         <div className="flex items-center gap-3">
                             <Bell className="h-6 w-6 text-indigo-500 fill-indigo-500/20" />
                             <div className="flex-1">
-                                <h3 className="font-black uppercase tracking-widest text-indigo-500">{unreadCount} New Messages</h3>
+                                <h3 className="font-black uppercase tracking-widest text-indigo-500">{unreadCount} New messages</h3>
                             </div>
                             <ChevronRight className="h-6 w-6 text-indigo-500" />
                         </div>
@@ -206,7 +206,7 @@ export default function MemberDashboard() {
                             </div>
 
                             <div className="w-full">
-                                <p className="text-xs font-black uppercase tracking-widest text-theme-muted mb-2">Your Code</p>
+                                <p className="text-xs font-black uppercase tracking-widest text-theme-muted mb-2">Your code</p>
                                 <button onClick={copyCode} className="w-full flex items-center justify-center gap-2 py-3 border-4 border-theme-strong bg-theme-sidebar hover:bg-theme-raised transition-colors font-bold group text-theme shadow-[2px_2px_0px_0px_var(--border-strong)]">
                                     <code className="text-lg font-black tracking-widest">{member.qrCode}</code>
                                     {copied ? <Check className="h-5 w-5 text-indigo-500" /> : <Copy className="h-5 w-5 text-theme-muted group-hover:text-indigo-500" />}
@@ -214,7 +214,7 @@ export default function MemberDashboard() {
                             </div>
                         </div>
                         <div className="border-t-4 border-theme-strong bg-theme-sidebar text-theme py-3 text-center text-sm font-black uppercase tracking-widest">
-                            Show this at the front desk
+                            Show this at the desk
                         </div>
                     </div>
                 </motion.div>
@@ -225,7 +225,7 @@ export default function MemberDashboard() {
                         <div className="flex items-center gap-3 mb-6 border-b-4 border-theme-strong pb-4">
                             <CreditCard className="h-6 w-6" />
                             <div>
-                                <h3 className="font-black uppercase tracking-widest text-lg">Membership</h3>
+                                <h3 className="font-black uppercase tracking-widest text-lg">Plan</h3>
                             </div>
                         </div>
 
@@ -235,7 +235,7 @@ export default function MemberDashboard() {
                                     <div>
                                         <div className="font-black text-2xl uppercase tracking-wider">{activeMembership.planName}</div>
                                         <div className="text-sm font-bold text-theme-muted uppercase tracking-widest">
-                                            Valid until {formatDate(activeMembership.endDate)}
+                                            Good until {formatDate(activeMembership.endDate)}
                                         </div>
                                     </div>
                                 </div>
@@ -243,7 +243,7 @@ export default function MemberDashboard() {
                                 <div>
                                     <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest mb-2">
                                         <span className="flex items-center gap-2 text-theme-muted">
-                                            <Clock className="h-4 w-4" /> Time Left
+                                            <Clock className="h-4 w-4" /> Time left
                                         </span>
                                         <span className="text-theme">{daysRemaining} days left</span>
                                     </div>
@@ -257,7 +257,7 @@ export default function MemberDashboard() {
                         ) : (
                             <div className="p-6 border-4 border-red-500 bg-red-500/10 text-center shadow-[4px_4px_0px_0px_rgba(239,68,68,0.5)]">
                                 <AlertCircle className="h-10 w-10 text-red-500 mx-auto mb-3" />
-                                <p className="font-black text-xl uppercase tracking-widest text-red-500">No active membership</p>
+                                <p className="font-black text-xl uppercase tracking-widest text-red-500">No active plan</p>
                             </div>
                         )}
                     </motion.div>

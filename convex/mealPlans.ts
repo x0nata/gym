@@ -47,7 +47,7 @@ export const createMealPlan = mutation({
             .filter((q) => q.eq(q.field("coachId"), user.coachId!))
             .first();
 
-        if (!connection) throw new Error("No active connection with this member");
+        if (!connection) throw new Error("No active link with this member");
 
         const existingActive = await ctx.db
             .query("mealPlans")
@@ -112,7 +112,7 @@ export const updateMealPlan = mutation({
 
         const mealPlan = await ctx.db.get(args.mealPlanId);
         if (!mealPlan || mealPlan.coachId !== user.coachId) {
-            throw new Error("Meal plan not found or unauthorized");
+            throw new Error("Meal plan not found");
         }
 
         const updates: Record<string, unknown> = { updatedAt: Date.now() };
@@ -155,7 +155,7 @@ export const getMemberMealPlans = query({
         } else {
             const member = await ctx.db.get(args.memberId);
             if (!member || member.gymId !== user.gymId) {
-                throw new ConvexError({ code: "FORBIDDEN", message: "Member does not belong to your gym." });
+                throw new ConvexError({ code: "FORBIDDEN", message: "Member is not in your gym." });
             }
         }
 
@@ -241,7 +241,7 @@ export const deleteMealPlan = mutation({
 
         const mealPlan = await ctx.db.get(args.mealPlanId);
         if (!mealPlan || mealPlan.coachId !== user.coachId) {
-            throw new Error("Meal plan not found or unauthorized");
+            throw new Error("Meal plan not found");
         }
 
         await ctx.db.delete(args.mealPlanId);
@@ -262,7 +262,7 @@ export const duplicateMealPlan = mutation({
 
         const originalPlan = await ctx.db.get(args.mealPlanId);
         if (!originalPlan || originalPlan.coachId !== user.coachId) {
-            throw new Error("Meal plan not found or unauthorized");
+            throw new Error("Meal plan not found");
         }
 
         const newPlanId = await ctx.db.insert("mealPlans", {

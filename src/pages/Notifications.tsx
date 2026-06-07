@@ -23,10 +23,10 @@ import { DetailedErrorPanel } from "../components/feedback/DetailedErrorPanel";
 type NotificationType = Doc<"notifications">["type"];
 
 const typeConfig: Record<NotificationType, { icon: typeof Bell; stripe: string; label: string }> = {
-  membership_expiring: { icon: AlertTriangle, stripe: "bg-amber-400", label: "EXPIRING" },
-  membership_expired: { icon: ShieldAlert, stripe: "bg-red-500", label: "EXPIRED" },
-  check_in: { icon: ScanLine, stripe: "bg-emerald-500", label: "CHECK-IN" },
-  welcome: { icon: UserPlus, stripe: "bg-blue-500", label: "WELCOME" },
+  membership_expiring: { icon: AlertTriangle, stripe: "bg-amber-400", label: "Expiring" },
+  membership_expired: { icon: ShieldAlert, stripe: "bg-red-500", label: "Expired" },
+  check_in: { icon: ScanLine, stripe: "bg-emerald-500", label: "Check-in" },
+  welcome: { icon: UserPlus, stripe: "bg-blue-500", label: "Welcome" },
 };
 
 export default function Notifications() {
@@ -60,7 +60,7 @@ export default function Notifications() {
       setError(
         toDisplayError(err, {
           title: "Update failed",
-          fallbackMessage: "We could not mark notifications as read.",
+          fallbackMessage: "Could not mark alerts as read.",
         })
       );
     }
@@ -88,8 +88,8 @@ export default function Notifications() {
                 <MessageSquare className="h-5 w-5 md:h-6 md:w-6" />
               </div>
               <div>
-                <p className="text-[10px] md:text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500">Comms</p>
-                <h1 className="text-xl md:text-2xl font-black uppercase font-['Syncopate']">{isMember ? "Member Feed" : "Operations Feed"}</h1>
+                <p className="text-[10px] md:text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500">Alerts</p>
+                <h1 className="text-xl md:text-2xl font-black uppercase font-['Syncopate']">{isMember ? "Member alerts" : "Gym alerts"}</h1>
               </div>
             </div>
             <div className="flex items-center gap-2 md:gap-3 ml-auto">
@@ -104,7 +104,7 @@ export default function Notifications() {
                   className="px-3 md:px-4 py-1.5 md:py-2 border-2 border-theme-strong bg-indigo-500 text-white text-[10px] md:text-xs font-black uppercase tracking-widest hover:bg-indigo-600 transition-colors inline-flex items-center gap-1 md:gap-2"
                 >
                   <CheckCheck className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  <span className="hidden sm:inline">Mark all</span>
+                  <span className="hidden sm:inline">Mark all read</span>
                   <span className="sm:hidden">Read</span>
                 </button>
               )}
@@ -114,8 +114,8 @@ export default function Notifications() {
 
       <section className="border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)] overflow-hidden">
         <div className="p-4 border-b-4 border-theme-strong bg-theme-sidebar flex items-center justify-between">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-600">Live notifications</p>
-          <p className="text-xs font-bold uppercase text-theme-muted">Tap item to mark read</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-600">Live alerts</p>
+          <p className="text-xs font-bold uppercase text-theme-muted">Tap to mark read</p>
         </div>
 
         {notifications.length === 0 ? (
@@ -138,7 +138,7 @@ export default function Notifications() {
                         setError(
                           toDisplayError(err, {
                             title: "Update failed",
-                            fallbackMessage: "We could not mark this notification as read.",
+                            fallbackMessage: "Could not mark this alert as read.",
                           })
                         );
                       });

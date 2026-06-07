@@ -53,7 +53,7 @@ export default function MemberDetail() {
       <div className="flex h-64 flex-col items-center justify-center space-y-4">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-theme-strong border-t-transparent"></div>
         <p className="font-['Syncopate'] text-sm font-bold uppercase tracking-widest text-theme-base">
-          Loading Member...
+          Loading...
         </p>
       </div>
     );
@@ -63,9 +63,9 @@ export default function MemberDetail() {
     return (
       <div className="max-w-2xl mx-auto border-4 border-theme-strong bg-theme-raised p-6 shadow-[4px_4px_0px_0px_var(--border-strong)]">
         <h1 className="text-xl font-black uppercase font-['Syncopate']">Member not found</h1>
-        <p className="mt-2 text-sm font-bold text-theme-muted">This member record is unavailable or you no longer have access.</p>
+        <p className="mt-2 text-sm font-bold text-theme-muted">This member is not available or you do not have access.</p>
         <Link to="/members" className="inline-flex mt-4 px-4 py-2 border-2 border-theme-strong bg-black text-white text-xs font-black uppercase tracking-widest">
-          Back to roster
+          Back to members
         </Link>
       </div>
     );
@@ -78,8 +78,8 @@ export default function MemberDetail() {
     setActionError(null);
     if (!sessionToken) {
       setActionError({
-        title: "Session required",
-        message: "Your session expired. Sign in again before renewing membership.",
+        title: "Session expired",
+        message: "Your session expired. Sign in again to renew.",
         code: "UNAUTHORIZED",
       });
       return;
@@ -91,8 +91,8 @@ export default function MemberDetail() {
     } catch (error) {
       setActionError(
         toDisplayError(error, {
-          title: "Membership update failed",
-          fallbackMessage: "We could not update membership right now.",
+          title: "Could not update membership",
+          fallbackMessage: "Could not update membership now.",
         })
       );
     }
@@ -145,7 +145,7 @@ export default function MemberDetail() {
         className="inline-flex items-center gap-2 font-['Syncopate'] text-xs font-bold uppercase tracking-wider text-theme-base hover:text-theme-muted transition-colors"
       >
         <ArrowLeft size={16} className="border-2 border-theme-strong rounded-full p-0.5" /> 
-        Back to Members
+        Back to members
       </Link>
 
       {/* Header Profile Card */}
@@ -180,7 +180,7 @@ export default function MemberDetail() {
                 </span>
               ) : (
                 <span className="inline-flex items-center px-4 py-2 border-4 border-theme-strong bg-red-500 text-white text-sm font-black uppercase tracking-wider shadow-[4px_4px_0px_0px_var(--border-strong)]">
-                  No Active Plan
+                  No active plan
                 </span>
               )}
             </div>
@@ -228,7 +228,7 @@ export default function MemberDetail() {
           className="flex items-center gap-2 bg-theme-strong text-theme-raised border-4 border-theme-strong px-6 py-4 font-['Syncopate'] text-sm font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_var(--border-strong)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_var(--border-strong)] transition-all active:translate-y-[4px] active:translate-x-[4px] active:shadow-none"
           onClick={() => setShowRenew(!showRenew)}
         >
-          <CreditCard size={18} /> {activeMembership ? "RENEW" : "ADD"} MEMBERSHIP
+          <CreditCard size={18} /> {activeMembership ? "Renew" : "Add"} plan
         </button>
       </div>
 
@@ -240,7 +240,7 @@ export default function MemberDetail() {
           <div className="absolute top-0 right-0 w-32 h-32 bg-theme-strong/5 rotate-45 transform translate-x-16 -translate-y-16"></div>
           
           <h3 className="font-['Syncopate'] text-xl font-black uppercase tracking-widest mb-6 border-b-4 border-theme-strong pb-4 inline-block">
-            Add / Renew Membership
+            Add or renew plan
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end relative z-10">
@@ -275,7 +275,7 @@ export default function MemberDetail() {
               type="submit" 
               className="w-full bg-theme-strong text-theme-raised border-4 border-theme-strong px-4 py-3 font-['Syncopate'] text-sm font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_var(--border-strong)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_var(--border-strong)] transition-all"
             >
-              ACTIVATE
+              Activate
             </button>
           </div>
         </form>
@@ -287,7 +287,7 @@ export default function MemberDetail() {
           <div className="p-4 sm:p-6 border-b-4 border-theme-strong bg-theme-sidebar flex justify-between items-center">
             <h3 className="font-['Syncopate'] text-lg sm:text-xl font-black uppercase tracking-widest flex items-center gap-3">
               <CreditCard size={24} className="text-theme-strong" /> 
-              Memberships
+              Plans
             </h3>
           </div>
           
@@ -295,7 +295,7 @@ export default function MemberDetail() {
             {!memberships || memberships.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center opacity-50 space-y-4">
                 <CreditCard size={48} />
-                <p className="font-['Syncopate'] text-sm font-bold uppercase tracking-widest">No memberships found</p>
+                <p className="font-['Syncopate'] text-sm font-bold uppercase tracking-widest">No plans found</p>
               </div>
             ) : (
               memberships.map((ms) => (
@@ -311,7 +311,7 @@ export default function MemberDetail() {
                       </div>
                     </div>
                     <span className={`inline-block px-3 py-1 border-2 border-theme-strong text-xs font-black uppercase tracking-widest ${ms.status === "active" ? (getMembershipStatusColor(ms.endDate) === "active" ? "bg-green-500 text-white" : getMembershipStatusColor(ms.endDate) === "warning" ? "bg-yellow-500 text-black" : "bg-red-500 text-white") : "bg-theme-muted text-theme-raised"}`}>
-                      {ms.status === "active" ? getMembershipStatusLabel(ms.endDate) : "EXPIRED"}
+                      {ms.status === "active" ? getMembershipStatusLabel(ms.endDate) : "Expired"}
                     </span>
                   </div>
                   
@@ -324,8 +324,8 @@ export default function MemberDetail() {
                         />
                       </div>
                       <div className="mt-1 flex justify-between text-[10px] font-bold uppercase tracking-widest text-theme-muted">
-                        <span>START</span>
-                        <span>{Math.round(getProgressPercent(ms.startDate, ms.endDate))}% USED</span>
+                        <span>Start</span>
+                        <span>{Math.round(getProgressPercent(ms.startDate, ms.endDate))}% used</span>
                       </div>
                     </div>
                   )}
@@ -370,7 +370,7 @@ export default function MemberDetail() {
                         </span>
                       </div>
                       <div className="mt-1 ml-7 text-xs font-bold uppercase tracking-widest text-theme-muted">
-                        Successful Entry
+                        Checked in
                       </div>
                     </div>
                   </div>

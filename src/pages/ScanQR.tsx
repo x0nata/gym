@@ -42,7 +42,7 @@ export default function ScanQR() {
     } catch (err: unknown) {
       const details = toDisplayError(err, {
         title: "Check-in failed",
-        fallbackMessage: "Scan failed. Please try again.",
+        fallbackMessage: "Scan failed. Try again.",
       });
       setResult({ status: "error", message: details.message, errorDetails: details });
     } finally {
@@ -74,7 +74,7 @@ export default function ScanQR() {
           </div>
           <div>
             <p className="text-[10px] uppercase font-black tracking-[0.2em] text-[#ccff00]">Access</p>
-            <h1 className="text-2xl md:text-3xl font-black font-['Syncopate'] uppercase">Gate Console</h1>
+            <h1 className="text-2xl md:text-3xl font-black font-['Syncopate'] uppercase">Check-in</h1>
           </div>
         </div>
       </motion.section>
@@ -118,7 +118,7 @@ export default function ScanQR() {
                   <input
                     value={manualCode}
                     onChange={(e) => setManualCode(e.target.value.toUpperCase())}
-                    placeholder="ENTER MEMBER QR ID"
+                    placeholder="Enter member QR ID"
                     className="w-full h-12 border-2 border-theme-strong bg-theme-raised text-theme pl-10 pr-3 font-black uppercase tracking-widest text-sm focus:outline-none focus:ring-2 focus:ring-theme-strong"
                   />
                 </div>
@@ -127,7 +127,7 @@ export default function ScanQR() {
                   disabled={scanning || !manualCode.trim()}
                   className="w-full h-12 border-2 border-theme-strong bg-black text-white font-black uppercase tracking-widest disabled:opacity-50 hover:bg-gray-900 transition-colors"
                 >
-                  {scanning ? "VERIFYING..." : "Authorize"}
+                  {scanning ? "Checking..." : "Check in"}
                 </button>
               </form>
             ) : (
@@ -138,7 +138,7 @@ export default function ScanQR() {
                     onClick={() => setCameraActive(true)}
                     className="w-full h-11 border-2 border-theme-strong bg-[#ccff00] text-black font-black uppercase tracking-widest hover:bg-[#b3e600] transition-colors"
                   >
-                    Activate scanner
+                    Start scanner
                   </button>
                 )}
                 {cameraActive && (
@@ -154,9 +154,9 @@ export default function ScanQR() {
                       className="w-full h-12 border-2 border-theme-strong bg-[#ccff00] text-black font-black uppercase tracking-widest hover:bg-[#b3e600] transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
                     >
                       {capturing ? (
-                        <><div className="h-5 w-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Capturing...</>
+                        <><div className="h-5 w-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Scanning...</>
                       ) : (
-                        "Capture QR Code"
+                        "Scan QR code"
                       )}
                     </button>
                   </div>
@@ -195,17 +195,17 @@ export default function ScanQR() {
                   {result.status === "already_checked_in" && <AlertTriangle className="h-6 w-6 text-amber-500" />}
                   {result.status === "error" && <XCircle className="h-6 w-6 text-red-500" />}
                 </div>
-                <p className="text-xl font-black uppercase text-theme">{result.member ? `${result.member.firstName} ${result.member.lastName}` : "Access denied"}</p>
+                <p className="text-xl font-black uppercase text-theme">{result.member ? `${result.member.firstName} ${result.member.lastName}` : "Not allowed"}</p>
                 {result.membership && (
                   <div className="border-2 border-theme-strong bg-theme-raised p-3 mt-2 mx-auto max-w-xs">
-                    <div className="text-[10px] font-black text-theme-muted uppercase tracking-widest mb-1">Membership</div>
+                    <div className="text-[10px] font-black text-theme-muted uppercase tracking-widest mb-1">Plan</div>
                     <div className="font-black text-theme uppercase">{result.membership.planName}</div>
                     <div className="text-[10px] font-bold text-theme-muted uppercase mt-1">
-                      Expires: {formatDate(result.membership.endDate)}
+                      Ends: {formatDate(result.membership.endDate)}
                     </div>
                     {result.daysRemaining !== undefined && (
                       <div className="text-[10px] font-bold text-theme-muted uppercase mt-0.5">
-                        {result.daysRemaining} day{result.daysRemaining !== 1 ? "s" : ""} remaining
+                        {result.daysRemaining} day{result.daysRemaining !== 1 ? "s" : ""} left
                       </div>
                     )}
                   </div>
@@ -213,9 +213,9 @@ export default function ScanQR() {
                 {result.errorDetails ? (
                   <DetailedErrorPanel error={result.errorDetails} className="mt-3 text-left" />
                 ) : (
-                  <p className="mt-2 text-sm font-bold uppercase text-theme-muted">{result.message ?? (result.status === "checked_in" ? "Access granted" : "Already checked in")}</p>
+                  <p className="mt-2 text-sm font-bold uppercase text-theme-muted">{result.message ?? (result.status === "checked_in" ? "Checked in" : "Already checked in")}</p>
                 )}
-                <button onClick={resetResult} className="mt-4 h-10 px-4 border-2 border-theme-strong bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors">Next scan</button>
+                <button onClick={resetResult} className="mt-4 h-10 px-4 border-2 border-theme-strong bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors">Next</button>
               </div>
             </div>
           )}
@@ -223,8 +223,8 @@ export default function ScanQR() {
 
         <section className="border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)] overflow-hidden">
           <div className="p-4 border-b-4 border-theme-strong bg-theme-sidebar flex items-center justify-between">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-theme-muted">Today log</p>
-            <p className="text-xs font-black uppercase text-theme">{todayCheckIns?.length ?? 0} entries</p>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-theme-muted">Today</p>
+            <p className="text-xs font-black uppercase text-theme">{todayCheckIns?.length ?? 0} check-ins</p>
           </div>
           {!todayCheckIns || todayCheckIns.length === 0 ? (
             <div className="py-16 text-center text-theme-muted font-black uppercase tracking-widest">No check-ins yet</div>

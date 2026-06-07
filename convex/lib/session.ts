@@ -25,7 +25,7 @@ export async function requireSessionUser(ctx: QueryCtx | MutationCtx, sessionTok
   if (!session || session.revokedAt || session.expiresAt < Date.now()) {
     throw new ConvexError({
       code: "UNAUTHORIZED",
-      message: "Session is invalid or expired.",
+      message: "Your session expired. Sign in again.",
     });
   }
 
@@ -33,7 +33,7 @@ export async function requireSessionUser(ctx: QueryCtx | MutationCtx, sessionTok
   if (!user) {
     throw new ConvexError({
       code: "UNAUTHORIZED",
-      message: "User not found for session.",
+      message: "User not found.",
     });
   }
 
@@ -84,7 +84,7 @@ async function resolveUserFromIdentity(ctx: QueryCtx | MutationCtx) {
   if (!identity) {
     throw new ConvexError({
       code: "UNAUTHORIZED",
-      message: "Not authenticated.",
+      message: "Not signed in.",
     });
   }
 
@@ -96,7 +96,7 @@ async function resolveUserFromIdentity(ctx: QueryCtx | MutationCtx) {
   if (!user) {
     throw new ConvexError({
       code: "UNAUTHORIZED",
-      message: "No profile found for this account.",
+      message: "No profile found.",
     });
   }
 
@@ -131,7 +131,7 @@ export function ensureSameGym(member: Doc<"members"> | null, gymId: Doc<"users">
   if (!member || !gymId || !member.gymId || member.gymId !== gymId) {
     throw new ConvexError({
       code: "FORBIDDEN",
-      message: "Member does not belong to your gym.",
+      message: "Member is not in your gym.",
     });
   }
 }

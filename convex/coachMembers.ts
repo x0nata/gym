@@ -9,7 +9,7 @@ export const requestConnection = mutation({
     },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
-        if (!identity) throw new Error("Not authenticated");
+        if (!identity) throw new Error("Not signed in");
 
         const user = await ctx.db
             .query("users")
@@ -24,7 +24,7 @@ export const requestConnection = mutation({
             .filter((q) => q.eq(q.field("memberId"), args.memberId))
             .first();
 
-        if (existing) throw new Error("Connection already exists");
+        if (existing) throw new Error("Link already exists");
 
         const connectionId = await ctx.db.insert("coachMemberConnections", {
             coachId: user.coachId,
@@ -48,7 +48,7 @@ export const respondToConnection = mutation({
     },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
-        if (!identity) throw new Error("Not authenticated");
+        if (!identity) throw new Error("Not signed in");
 
         const user = await ctx.db
             .query("users")
@@ -59,7 +59,7 @@ export const respondToConnection = mutation({
 
         const connection = await ctx.db.get(args.connectionId);
         if (!connection || connection.memberId !== user.memberId) {
-            throw new Error("Connection not found or unauthorized");
+            throw new Error("Link not found");
         }
 
         const now = Date.now();
@@ -198,7 +198,7 @@ export const updateConnectionStatus = mutation({
     },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
-        if (!identity) throw new Error("Not authenticated");
+        if (!identity) throw new Error("Not signed in");
 
         const user = await ctx.db
             .query("users")
@@ -208,11 +208,11 @@ export const updateConnectionStatus = mutation({
         if (!user) throw new Error("User not found");
 
         const connection = await ctx.db.get(args.connectionId);
-        if (!connection) throw new Error("Connection not found");
+        if (!connection) throw new Error("Link not found");
 
         const isCoach = user.coachId === connection.coachId;
         const isMember = user.memberId === connection.memberId;
-        if (!isCoach && !isMember) throw new Error("Unauthorized");
+        if (!isCoach && !isMember) throw new Error("Not allowed");
 
         const updates: Record<string, unknown> = {
             status: args.status,
@@ -246,7 +246,7 @@ export const memberRequestConnection = mutation({
     },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
-        if (!identity) throw new Error("Not authenticated");
+        if (!identity) throw new Error("Not signed in");
 
         const user = await ctx.db
             .query("users")
@@ -261,7 +261,7 @@ export const memberRequestConnection = mutation({
             .filter((q) => q.eq(q.field("coachId"), args.coachId))
             .first();
 
-        if (existing) throw new Error("Connection already exists");
+        if (existing) throw new Error("Link already exists");
 
         const connectionId = await ctx.db.insert("coachMemberConnections", {
             coachId: args.coachId,

@@ -168,8 +168,8 @@ export const checkMembershipExpiry = internalMutation({
           await ctx.db.insert("notifications", {
             memberId: member._id,
             type: "membership_expired",
-            title: "Membership Expired",
-            message: `${member.firstName} ${member.lastName}'s ${membership.planName} membership has expired. Payment is due.`,
+            title: "Plan Expired",
+            message: `${member.firstName} ${member.lastName}'s ${membership.planName} plan has expired. Pay to renew.`,
             isRead: false,
             createdAt: now,
             audience: "gym",
@@ -178,8 +178,8 @@ export const checkMembershipExpiry = internalMutation({
           await ctx.db.insert("notifications", {
             memberId: member._id,
             type: "membership_expired",
-            title: "Membership Expired",
-            message: `Your ${membership.planName} membership has expired. Please visit the gym to renew.`,
+            title: "Plan Expired",
+            message: `Your ${membership.planName} plan has expired. Go to the gym to renew.`,
             isRead: false,
             createdAt: now,
             audience: "member",
@@ -193,8 +193,8 @@ export const checkMembershipExpiry = internalMutation({
         await ctx.db.insert("notifications", {
           memberId: member._id,
           type: "membership_expiring",
-          title: "Membership Expiring Soon",
-          message: `${member.firstName} ${member.lastName}'s membership expires in ${daysRemaining} day(s).`,
+          title: "Plan Expiring Soon",
+          message: `${member.firstName} ${member.lastName}'s plan ends in ${daysRemaining} day(s).`,
           isRead: false,
           createdAt: now,
           audience: "gym",
@@ -203,8 +203,8 @@ export const checkMembershipExpiry = internalMutation({
         await ctx.db.insert("notifications", {
           memberId: member._id,
           type: "membership_expiring",
-          title: "Membership Expiring Soon",
-          message: `Your ${membership.planName} plan expires in ${daysRemaining} day(s). Renew now to keep your access active.`,
+          title: "Plan Expiring Soon",
+          message: `Your ${membership.planName} plan ends in ${daysRemaining} day(s). Renew to keep access.`,
           isRead: false,
           createdAt: now,
           audience: "member",

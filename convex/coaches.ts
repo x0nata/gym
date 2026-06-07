@@ -50,7 +50,7 @@ export const requestConnection = mutation({
             .first();
 
         if (existing) {
-            throw new Error("Connection request already exists");
+            throw new Error("Request already exists");
         }
 
         await ctx.db.insert("coachGymConnections", {

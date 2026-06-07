@@ -24,18 +24,18 @@ interface AppLayoutProps {
 }
 
 const gymNavItems = [
-    { to: "/dashboard", label: "HQ", icon: LayoutDashboard },
-    { to: "/members", label: "Athletes", icon: Users },
-    { to: "/scan", label: "Access", icon: ScanLine },
-    { to: "/reports", label: "Intel", icon: ClipboardList },
-    { to: "/analytics", label: "Metrics", icon: BarChart3 },
-    { to: "/notifications", label: "Alerts", icon: Bell },
+    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/members", label: "Members", icon: Users },
+    { to: "/scan", label: "Scan", icon: ScanLine },
+    { to: "/reports", label: "Reports", icon: ClipboardList },
+    { to: "/analytics", label: "Analytics", icon: BarChart3 },
+    { to: "/notifications", label: "Notifications", icon: Bell },
 ];
 
 const memberNavItems = [
     { to: "/dashboard", label: "Overview", icon: LayoutDashboard },
-    { to: "/member/plans", label: "Protocol", icon: Sparkles },
-    { to: "/notifications", label: "Comms", icon: Bell },
+    { to: "/member/plans", label: "Plan", icon: Sparkles },
+    { to: "/notifications", label: "Messages", icon: Bell },
 ];
 
 export function AppLayout({ children }: AppLayoutProps) {
@@ -56,9 +56,9 @@ export function AppLayout({ children }: AppLayoutProps) {
     const getRoleInfo = () => {
         switch (user?.role) {
             case "member":
-                return { label: "ATHLETE", icon: "A", portal: "MEMBER TERMINAL" };
+                return { label: "Member", icon: "M", portal: "Member" };
             default:
-                return { label: "STAFF", icon: "S", portal: "HQ COMMAND" };
+                return { label: "Staff", icon: "S", portal: "Staff" };
         }
     };
     
@@ -106,7 +106,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                         <button
                             onClick={() => setSidebarOpen(false)}
                             className="lg:hidden p-2 border-2 border-theme hover:bg-theme transition-colors"
-                            aria-label="Close sidebar"
+                            aria-label="Close menu"
                         >
                             <X className="h-5 w-5" />
                         </button>
@@ -152,7 +152,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                         className="w-full flex items-center justify-center gap-3 p-3 lg:p-4 border-2 border-red-500 bg-red-500/10 text-red-500 font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-colors shadow-[4px_4px_0px_0px_var(--color-red-500)] hover:translate-x-[-2px] hover:translate-y-[-2px] text-sm"
                     >
                         <LogOut className="h-4 w-4" />
-                        TERMINATE
+                        Log out
                     </button>
                 </div>
             </aside>
@@ -174,20 +174,20 @@ export function AppLayout({ children }: AppLayoutProps) {
                             </span>
                         </div>
                         <h1 className="text-lg md:text-2xl font-black uppercase tracking-widest font-['Syncopate'] text-theme hidden lg:block">
-                            {navItems.find(item => item.to === location.pathname)?.label || "DASHBOARD"}
+                            {navItems.find(item => item.to === location.pathname)?.label || "Dashboard"}
                         </h1>
                     </div>
                     <div className="flex items-center gap-2 md:gap-4 font-bold tracking-widest uppercase text-xs md:text-sm">
                         <button
                             onClick={toggleTheme}
                             className="p-2 border-2 border-theme bg-theme-raised hover:bg-theme transition-colors text-theme-secondary hover:text-theme shadow-[2px_2px_0px_0px_var(--border-strong)] hover:translate-x-[-1px] hover:translate-y-[-1px]"
-                            aria-label="Toggle theme"
+                            aria-label="Switch theme"
                         >
                             {theme === "dark" ? <Sun className="h-4 w-4 md:h-5 md:w-5" /> : <Moon className="h-4 w-4 md:h-5 md:w-5" />}
                         </button>
                         <div className="flex items-center gap-1.5 md:gap-2 px-2 md:px-4 py-1 md:py-2 border-2 border-emerald-500/50 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-[2px_2px_0px_0px_rgba(16,185,129,0.5)]">
                             <div className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse" />
-                            <span className="hidden sm:inline">SYSTEM NOMINAL</span>
+                            <span className="hidden sm:inline">Online</span>
                             <span className="sm:hidden">OK</span>
                         </div>
                     </div>

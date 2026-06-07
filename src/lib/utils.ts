@@ -31,7 +31,7 @@ export function getMembershipStatusLabel(endDate: number) {
   if (isAfter(endDate, now)) {
     const daysLeft = Math.ceil((endDate - now) / (24 * 60 * 60 * 1000));
     if (daysLeft < 7) return `Expires in ${daysLeft} days`;
-    return `Active (${daysLeft} days left)`;
+    return `Active — ${daysLeft} days left`;
   }
   return "Expired";
 }

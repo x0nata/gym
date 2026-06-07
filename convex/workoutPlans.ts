@@ -55,7 +55,7 @@ export const createWorkoutPlan = mutation({
             .filter((q) => q.eq(q.field("coachId"), user.coachId!))
             .first();
 
-        if (!connection) throw new Error("No active connection with this member");
+        if (!connection) throw new Error("No active link with this member");
 
         const existingActive = await ctx.db
             .query("workoutPlans")
@@ -126,7 +126,7 @@ export const updateWorkoutPlan = mutation({
 
         const workoutPlan = await ctx.db.get(args.workoutPlanId);
         if (!workoutPlan || workoutPlan.coachId !== user.coachId) {
-            throw new Error("Workout plan not found or unauthorized");
+            throw new Error("Workout plan not found");
         }
 
         const updates: Record<string, unknown> = { updatedAt: Date.now() };
@@ -167,7 +167,7 @@ export const getMemberWorkoutPlans = query({
         } else {
             const member = await ctx.db.get(args.memberId);
             if (!member || member.gymId !== user.gymId) {
-                throw new ConvexError({ code: "FORBIDDEN", message: "Member does not belong to your gym." });
+                throw new ConvexError({ code: "FORBIDDEN", message: "Member is not in your gym." });
             }
         }
 
@@ -253,7 +253,7 @@ export const deleteWorkoutPlan = mutation({
 
         const workoutPlan = await ctx.db.get(args.workoutPlanId);
         if (!workoutPlan || workoutPlan.coachId !== user.coachId) {
-            throw new Error("Workout plan not found or unauthorized");
+            throw new Error("Workout plan not found");
         }
 
         await ctx.db.delete(args.workoutPlanId);
@@ -274,7 +274,7 @@ export const duplicateWorkoutPlan = mutation({
 
         const originalPlan = await ctx.db.get(args.workoutPlanId);
         if (!originalPlan || originalPlan.coachId !== user.coachId) {
-            throw new Error("Workout plan not found or unauthorized");
+            throw new Error("Workout plan not found");
         }
 
         const newPlanId = await ctx.db.insert("workoutPlans", {
