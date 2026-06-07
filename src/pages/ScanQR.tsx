@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { motion } from "framer-motion";
-import { Scanner } from "@yudiel/react-qr-scanner";
 import { ScanLine, Camera, Keyboard, Search, CheckCircle2, AlertTriangle, XCircle, Clock3 } from "lucide-react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/useAuth";
@@ -9,6 +8,7 @@ import { formatDate, formatDateTime } from "../lib/utils";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { toDisplayError, type AppErrorDetails } from "../lib/errorHandling";
 import { DetailedErrorPanel } from "../components/feedback/DetailedErrorPanel";
+import { useQrScanner } from "../lib/useQrScanner";
 
 type ScanResult = {
   status: "checked_in" | "already_checked_in" | "error";
@@ -30,7 +30,7 @@ export default function ScanQR() {
   const [manualCode, setManualCode] = useState("");
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
-  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [cameraActive, setCameraActive] = useState(false);
 
   const handleScan = useCallback(async (qrCode: string) => {
     if (!sessionToken) return;
@@ -50,10 +50,15 @@ export default function ScanQR() {
     }
   }, [checkIn, sessionToken]);
 
+  const { error: cameraError } = useQrScanner({
+    elementId: "scan-reader",
+    onScan: handleScan,
+    enabled: cameraActive && scannerMode === "camera" && !result,
+  });
+
   const resetResult = () => {
     setResult(null);
     setManualCode("");
-    setCameraError(null);
   };
 
   return (
@@ -80,7 +85,7 @@ export default function ScanQR() {
             <button
               onClick={() => {
                 setScannerMode("manual");
-                setCameraError(null);
+                setCameraActive(false);
               }}
               className={`flex-1 py-2 text-xs font-black uppercase tracking-widest border-2 ${scannerMode === "manual" ? "bg-black text-white border-theme-strong" : "border-transparent text-theme-muted"}`}
             >
@@ -89,7 +94,7 @@ export default function ScanQR() {
             <button
               onClick={() => {
                 setScannerMode("camera");
-                setCameraError(null);
+                setCameraActive(true);
               }}
               className={`flex-1 py-2 text-xs font-black uppercase tracking-widest border-2 ${scannerMode === "camera" ? "bg-[#ccff00] text-black border-theme-strong" : "border-transparent text-theme-muted"}`}
             >
@@ -127,46 +132,25 @@ export default function ScanQR() {
               </form>
             ) : (
               <div className="space-y-3">
-                <div className="relative overflow-hidden border-4 border-theme-strong bg-theme-sidebar">
-                  <Scanner
-                    onScan={(codes) => {
-                      const code = codes[0]?.rawValue;
-                      if (code && code.trim()) {
-                        void handleScan(code.trim());
-                      }
-                    }}
-                    onError={(err) => {
-                      const friendly =
-                        err.kind === "permission-denied"
-                          ? "Camera permission denied. Please allow camera access in your browser settings."
-                          : err.kind === "no-camera"
-                            ? "No camera found on this device."
-                            : err.kind === "in-use"
-                              ? "Camera is already in use by another application."
-                              : err.kind === "insecure-context"
-                                ? "Camera requires HTTPS or localhost."
-                                : err.kind === "unsupported"
-                                  ? "Your browser does not support camera access."
-                                  : err.message || "Camera error";
-                      setCameraError(friendly);
-                    }}
-                    constraints={{ facingMode: "environment" }}
-                    formats={["qr_code"]}
-                    paused={!!result || scannerMode !== "camera"}
-                    components={{ finder: true }}
-                    styles={{
-                      container: { width: "100%", minHeight: "290px" },
-                      video: { width: "100%", height: "100%", objectFit: "cover" },
-                    }}
-                  />
-                </div>
+                <div id="scan-reader" className="min-h-[290px] border-4 border-theme-strong bg-theme-sidebar" />
+                {!cameraActive && !cameraError && (
+                  <button
+                    onClick={() => setCameraActive(true)}
+                    className="w-full h-11 border-2 border-theme-strong bg-[#ccff00] text-black font-black uppercase tracking-widest hover:bg-[#b3e600] transition-colors"
+                  >
+                    Activate scanner
+                  </button>
+                )}
                 {cameraError && (
                   <div className="space-y-2">
                     <div className="p-3 border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider">
                       {cameraError}
                     </div>
                     <button
-                      onClick={() => setCameraError(null)}
+                      onClick={() => {
+                        setCameraActive(false);
+                        setTimeout(() => setCameraActive(true), 100);
+                      }}
                       className="w-full h-11 border-2 border-theme-strong bg-black text-white font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
                     >
                       Retry camera

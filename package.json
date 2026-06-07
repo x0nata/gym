@@ -15,10 +15,10 @@
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.92",
-    "@yudiel/react-qr-scanner": "^2.6.0",
     "convex": "^1.31.7",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.34.2",
+    "html5-qrcode": "^2.3.8",
     "lucide-react": "^0.572.0",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.0",
