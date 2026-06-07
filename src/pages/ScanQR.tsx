@@ -132,7 +132,7 @@ export default function ScanQR() {
               </form>
             ) : (
               <div className="space-y-3">
-                <div id="scan-reader" className="min-h-[290px] border-4 border-theme-strong bg-theme-sidebar relative" />
+                <div id="scan-reader" className="border-4 border-theme-strong bg-theme-sidebar relative" style={{ aspectRatio: "1/1", maxWidth: "400px", width: "100%", margin: "0 auto" }} />
                 {!cameraActive && !cameraError && (
                   <button
                     onClick={() => setCameraActive(true)}

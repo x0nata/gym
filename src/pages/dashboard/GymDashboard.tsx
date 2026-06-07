@@ -188,7 +188,7 @@ export default function GymDashboard() {
                                                 <div
                                                     id="qr-reader-main"
                                                     className="overflow-hidden border-4 border-theme-strong bg-theme-sidebar"
-                                                    style={{ minHeight: "280px" }}
+                                                    style={{ aspectRatio: "1/1", maxWidth: "400px", width: "100%", margin: "0 auto" }}
                                                 />
                                                 {!cameraActive && !cameraError && (
                                                     <button

@@ -200,8 +200,8 @@ export default function MemberDashboard() {
                     <div className="border-4 border-theme-strong bg-theme-raised shadow-[6px_6px_0px_0px_var(--border-strong)] relative">
                         <div className="p-4 md:p-6 text-center">
                             <div className="inline-block mb-4 md:mb-6">
-                                <div className="p-2 md:p-4 border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)] dark:bg-theme-raised inline-block">
-                                    <QRCodeSVG value={member.qrCode} size={180} level="H" includeMargin={false} fgColor="#000000" bgColor="#ffffff" />
+                                <div className="p-3 md:p-5 border-4 border-theme-strong bg-white shadow-[4px_4px_0px_0px_var(--border-strong)] inline-block">
+                                    <QRCodeSVG value={member.qrCode} size={180} level="M" includeMargin={true} fgColor="#000000" bgColor="#ffffff" />
                                 </div>
                             </div>
 

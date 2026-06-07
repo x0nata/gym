@@ -193,10 +193,11 @@ export default function MemberDetail() {
             <QRCodeSVG
               id="member-qr-code"
               value={member.qrCode}
-              size={120}
+              size={200}
               bgColor="#ffffff"
               fgColor="#000000"
-              level="H"
+              level="M"
+              includeMargin={true}
             />
           </div>
           <p className="font-['Syncopate'] text-xs font-bold uppercase tracking-widest bg-theme-strong text-theme-raised px-2 py-1 truncate max-w-full">
