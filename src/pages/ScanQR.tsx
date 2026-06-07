@@ -50,7 +50,7 @@ export default function ScanQR() {
     }
   }, [checkIn, sessionToken]);
 
-  const { error: cameraError } = useQrScanner({
+  const { error: cameraError, capture, capturing } = useQrScanner({
     elementId: "scan-reader",
     onScan: handleScan,
     enabled: cameraActive && scannerMode === "camera" && !result,
@@ -132,7 +132,7 @@ export default function ScanQR() {
               </form>
             ) : (
               <div className="space-y-3">
-                <div id="scan-reader" className="min-h-[290px] border-4 border-theme-strong bg-theme-sidebar" />
+                <div id="scan-reader" className="min-h-[290px] border-4 border-theme-strong bg-theme-sidebar relative" />
                 {!cameraActive && !cameraError && (
                   <button
                     onClick={() => setCameraActive(true)}
@@ -141,7 +141,27 @@ export default function ScanQR() {
                     Activate scanner
                   </button>
                 )}
-                {cameraError && (
+                {cameraActive && (
+                  <div className="space-y-2">
+                    {cameraError && (
+                      <div className="p-3 border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider text-center">
+                        {cameraError}
+                      </div>
+                    )}
+                    <button
+                      onClick={() => capture()}
+                      disabled={capturing || scanning}
+                      className="w-full h-12 border-2 border-theme-strong bg-[#ccff00] text-black font-black uppercase tracking-widest hover:bg-[#b3e600] transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
+                    >
+                      {capturing ? (
+                        <><div className="h-5 w-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Capturing...</>
+                      ) : (
+                        "Capture QR Code"
+                      )}
+                    </button>
+                  </div>
+                )}
+                {!cameraActive && cameraError && (
                   <div className="space-y-2">
                     <div className="p-3 border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider">
                       {cameraError}

@@ -72,7 +72,7 @@ export default function GymDashboard() {
         [checkIn, sessionToken]
     );
 
-    const { error: cameraError } = useQrScanner({
+    const { error: cameraError, capture, capturing } = useQrScanner({
         elementId: "qr-reader-main",
         onScan: handleScan,
         enabled: cameraActive && scannerMode === "camera" && !result,
@@ -201,7 +201,27 @@ export default function GymDashboard() {
                                                         <span className="text-sm font-black uppercase tracking-widest text-[#ccff00]">Turn On Camera</span>
                                                     </button>
                                                 )}
-                                                {cameraError && (
+                                                {cameraActive && (
+                                                    <div className="space-y-2 p-3">
+                                                        {cameraError && (
+                                                            <div className="border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider text-center p-2">
+                                                                {cameraError}
+                                                            </div>
+                                                        )}
+                                                        <button
+                                                            onClick={() => capture()}
+                                                            disabled={capturing || scanning}
+                                                            className="w-full py-3 border-2 border-theme-strong bg-[#ccff00] text-black font-black uppercase tracking-widest hover:bg-[#b3e600] transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
+                                                        >
+                                                            {capturing ? (
+                                                                <><div className="h-5 w-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Capturing...</>
+                                                            ) : (
+                                                                "Capture QR Code"
+                                                            )}
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                {!cameraActive && cameraError && (
                                                     <div className="space-y-2 p-3">
                                                         <div className="border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider text-center">
                                                             {cameraError}
