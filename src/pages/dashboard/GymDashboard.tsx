@@ -1,9 +1,10 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 // Deploy trigger: simplified dashboard copy
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { Scanner } from "@yudiel/react-qr-scanner";
 import {
     Users,
     CheckCircle2,
@@ -23,7 +24,6 @@ import type { Doc } from "../../../convex/_generated/dataModel";
 import { useAuth } from "../../lib/useAuth";
 import { toDisplayError, type AppErrorDetails } from "../../lib/errorHandling";
 import { DetailedErrorPanel } from "../../components/feedback/DetailedErrorPanel";
-import { useQrScanner } from "../../lib/useQrScanner";
 
 type ScanResult = {
     status: "checked_in" | "already_checked_in" | "error";
@@ -48,13 +48,11 @@ export default function GymDashboard() {
     const [manualCode, setManualCode] = useState("");
     const [scanning, setScanning] = useState(false);
     const [result, setResult] = useState<ScanResult | null>(null);
-    const [cameraActive, setCameraActive] = useState(false);
-    const scanningRef = useRef(false);
+    const [cameraError, setCameraError] = useState<string | null>(null);
 
     const handleScan = useCallback(
         async (qrCode: string) => {
-            if (scanningRef.current) return;
-            scanningRef.current = true;
+            if (!sessionToken) return;
             setScanning(true);
             setResult(null);
 
@@ -68,19 +66,11 @@ export default function GymDashboard() {
                 });
                 setResult({ status: "error", message: details.message, errorDetails: details });
             } finally {
-                scanningRef.current = false;
                 setScanning(false);
             }
         },
         [checkIn, sessionToken]
     );
-
-    const { error: cameraError, stopCamera } = useQrScanner({
-        onScan: handleScan,
-        enabled: cameraActive && scannerMode === "camera" && !result,
-        containerId: "qr-reader-main",
-        cooldownMs: 5000,
-    });
 
     const handleManualSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -92,6 +82,7 @@ export default function GymDashboard() {
     const resetResult = () => {
         setResult(null);
         setManualCode("");
+        setCameraError(null);
     };
 
     if (!stats) {
@@ -128,7 +119,7 @@ export default function GymDashboard() {
                         <div className="p-4 md:p-6">
                             <div className="flex gap-2 mb-4 md:mb-6 border-2 border-theme-strong p-1 bg-theme-sidebar">
                                 <button
-                                    onClick={() => { setScannerMode("manual"); stopCamera(); setCameraActive(false); }}
+                                    onClick={() => { setScannerMode("manual"); setCameraError(null); }}
                                     className={`flex-1 flex items-center justify-center gap-2 py-3 px-3 text-xs font-black uppercase tracking-widest transition-all ${
                                         scannerMode === "manual"
                                             ? "bg-black text-white border-2 border-theme-strong shadow-[2px_2px_0px_0px_rgba(204,255,0,1)] translate-x-[-2px] translate-y-[-2px]"
@@ -139,7 +130,7 @@ export default function GymDashboard() {
                                     Type Code
                                 </button>
                                 <button
-                                    onClick={() => { setScannerMode("camera"); setCameraActive(true); }}
+                                    onClick={() => { setScannerMode("camera"); setCameraError(null); }}
                                     className={`flex-1 flex items-center justify-center gap-2 py-3 px-3 text-xs font-black uppercase tracking-widest transition-all ${
                                         scannerMode === "camera"
                                             ? "bg-[#ccff00] text-theme border-2 border-theme-strong shadow-[4px_4px_0px_0px_var(--border-strong)] translate-x-[-2px] translate-y-[-2px]"
@@ -189,32 +180,46 @@ export default function GymDashboard() {
                                             </form>
                                         ) : (
                                             <div className="relative">
-                                                <div
-                                                    id="qr-reader-main"
-                                                    className="overflow-hidden border-4 border-theme-strong bg-theme-sidebar"
-                                                    style={{ minHeight: "280px" }}
-                                                />
-                                                {!cameraActive && !cameraError && (
-                                                    <button
-                                                        onClick={() => setCameraActive(true)}
-                                                        className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80 gap-4 group"
-                                                    >
-                                                        <div className="h-16 w-16 border-2 border-[#ccff00] bg-black flex items-center justify-center text-[#ccff00] group-hover:scale-110 transition-transform">
-                                                            <Camera className="h-8 w-8" />
-                                                        </div>
-                                                        <span className="text-sm font-black uppercase tracking-widest text-[#ccff00]">Turn On Camera</span>
-                                                    </button>
-                                                )}
+                                                <div className="overflow-hidden border-4 border-theme-strong bg-theme-sidebar">
+                                                    <Scanner
+                                                        onScan={(codes) => {
+                                                            const code = codes[0]?.rawValue;
+                                                            if (code && code.trim()) {
+                                                                void handleScan(code.trim());
+                                                            }
+                                                        }}
+                                                        onError={(err) => {
+                                                            const friendly =
+                                                                err.kind === "permission-denied"
+                                                                    ? "Camera permission denied. Please allow camera access in your browser settings."
+                                                                    : err.kind === "no-camera"
+                                                                        ? "No camera found on this device."
+                                                                        : err.kind === "in-use"
+                                                                            ? "Camera is already in use by another application."
+                                                                            : err.kind === "insecure-context"
+                                                                                ? "Camera requires HTTPS or localhost."
+                                                                                : err.kind === "unsupported"
+                                                                                    ? "Your browser does not support camera access."
+                                                                                    : err.message || "Camera error";
+                                                            setCameraError(friendly);
+                                                        }}
+                                                        constraints={{ facingMode: "environment" }}
+                                                        formats={["qr_code"]}
+                                                        paused={!!result || scannerMode !== "camera"}
+                                                        components={{ finder: true }}
+                                                        styles={{
+                                                            container: { width: "100%", minHeight: "280px" },
+                                                            video: { width: "100%", height: "100%", objectFit: "cover" },
+                                                        }}
+                                                    />
+                                                </div>
                                                 {cameraError && (
                                                     <div className="space-y-2 p-3">
                                                         <div className="border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider text-center">
                                                             {cameraError}
                                                         </div>
                                                         <button
-                                                            onClick={() => {
-                                                                setCameraActive(false);
-                                                                setTimeout(() => setCameraActive(true), 100);
-                                                            }}
+                                                            onClick={() => setCameraError(null)}
                                                             className="w-full py-2 border-2 border-theme-strong bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
                                                         >
                                                             Retry camera
@@ -372,7 +377,7 @@ export default function GymDashboard() {
                         className="flex-1 min-h-[260px] md:min-h-[320px] border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)] flex flex-col relative overflow-hidden"
                     >
                         <div className="absolute top-[-50px] right-[-50px] text-slate-100 pointer-events-none z-0">
-                            <AlertTriangle className="h-24 md:h-48 w-24 md:w-48 opacity-20" />
+                            <AlertTriangle className="h-24 md:h-48 w-24 md:h-48 w-48 opacity-20" />
                         </div>
                         <div className="p-4 md:p-5 border-b-4 border-theme-strong bg-amber-500 flex items-center justify-between relative z-10">
                             <h3 className="font-black uppercase tracking-widest flex items-center gap-2 md:gap-3 text-theme text-sm md:text-base">
