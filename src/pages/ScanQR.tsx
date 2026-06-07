@@ -5,7 +5,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import { ScanLine, Camera, Keyboard, Search, CheckCircle2, AlertTriangle, XCircle, Clock3 } from "lucide-react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/useAuth";
-import { formatDateTime } from "../lib/utils";
+import { formatDate, formatDateTime } from "../lib/utils";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { toDisplayError, type AppErrorDetails } from "../lib/errorHandling";
 import { DetailedErrorPanel } from "../components/feedback/DetailedErrorPanel";
@@ -13,6 +13,9 @@ import { DetailedErrorPanel } from "../components/feedback/DetailedErrorPanel";
 type ScanResult = {
   status: "checked_in" | "already_checked_in" | "error";
   member?: Doc<"members">;
+  membership?: Doc<"memberships">;
+  checkInTime?: number;
+  daysRemaining?: number;
   message?: string;
   errorDetails?: AppErrorDetails;
 };
@@ -27,13 +30,16 @@ export default function ScanQR() {
   const [manualCode, setManualCode] = useState("");
   const [scanning, setScanning] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const [result, setResult] = useState<ScanResult | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const lastScannedRef = useRef("");
+  const scanningRef = useRef(false);
 
   const handleScan = useCallback(async (qrCode: string) => {
-    if (!sessionToken || scanning || qrCode === lastScannedRef.current) return;
+    if (!sessionToken || scanningRef.current || qrCode === lastScannedRef.current) return;
     lastScannedRef.current = qrCode;
+    scanningRef.current = true;
     setScanning(true);
     setResult(null);
     try {
@@ -46,29 +52,40 @@ export default function ScanQR() {
       });
       setResult({ status: "error", message: details.message, errorDetails: details });
     } finally {
+      scanningRef.current = false;
       setScanning(false);
       setTimeout(() => {
         lastScannedRef.current = "";
       }, 3000);
     }
-  }, [checkIn, scanning, sessionToken]);
+  }, [checkIn, sessionToken]);
+
+  const handleScanRef = useRef(handleScan);
+  useEffect(() => {
+    handleScanRef.current = handleScan;
+  }, [handleScan]);
 
   useEffect(() => {
     if (!cameraActive || scannerMode !== "camera") return;
     const scanner = new Html5Qrcode("scan-reader");
     scannerRef.current = scanner;
+    setCameraError(null);
     scanner
       .start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 230, height: 230 } }, (decodedText) => {
-        void handleScan(decodedText);
+        void handleScanRef.current(decodedText);
       }, () => {})
-      .catch(() => setCameraActive(false));
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err);
+        setCameraError(message || "Camera failed to start");
+        setCameraActive(false);
+      });
 
     return () => {
       if (scanner.isScanning) {
         void scanner.stop();
       }
     };
-  }, [cameraActive, scannerMode, handleScan]);
+  }, [cameraActive, scannerMode]);
 
   const resetResult = () => {
     setResult(null);
@@ -147,12 +164,28 @@ export default function ScanQR() {
             ) : (
               <div className="space-y-3">
                 <div id="scan-reader" className="min-h-[290px] border-4 border-theme-strong bg-theme-sidebar" />
-                {!cameraActive && (
+                {cameraError && (
+                  <div className="p-3 border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider">
+                    {cameraError}. Check camera permissions or try manual entry.
+                  </div>
+                )}
+                {!cameraActive && !cameraError && (
                   <button
                     onClick={() => setCameraActive(true)}
                     className="w-full h-11 border-2 border-theme-strong bg-[#ccff00] text-black font-black uppercase tracking-widest hover:bg-[#b3e600] transition-colors"
                   >
                     Activate scanner
+                  </button>
+                )}
+                {cameraError && (
+                  <button
+                    onClick={() => {
+                      setCameraError(null);
+                      setCameraActive(true);
+                    }}
+                    className="w-full h-11 border-2 border-theme-strong bg-black text-white font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
+                  >
+                    Retry camera
                   </button>
                 )}
               </div>
@@ -174,6 +207,20 @@ export default function ScanQR() {
                   {result.status === "error" && <XCircle className="h-6 w-6 text-red-500" />}
                 </div>
                 <p className="text-xl font-black uppercase text-theme">{result.member ? `${result.member.firstName} ${result.member.lastName}` : "Access denied"}</p>
+                {result.membership && (
+                  <div className="border-2 border-theme-strong bg-theme-raised p-3 mt-2 mx-auto max-w-xs">
+                    <div className="text-[10px] font-black text-theme-muted uppercase tracking-widest mb-1">Membership</div>
+                    <div className="font-black text-theme uppercase">{result.membership.planName}</div>
+                    <div className="text-[10px] font-bold text-theme-muted uppercase mt-1">
+                      Expires: {formatDate(result.membership.endDate)}
+                    </div>
+                    {result.daysRemaining !== undefined && (
+                      <div className="text-[10px] font-bold text-theme-muted uppercase mt-0.5">
+                        {result.daysRemaining} day{result.daysRemaining !== 1 ? "s" : ""} remaining
+                      </div>
+                    )}
+                  </div>
+                )}
                 {result.errorDetails ? (
                   <DetailedErrorPanel error={result.errorDetails} className="mt-3 text-left" />
                 ) : (
