@@ -15,12 +15,11 @@
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.92",
-    "@zxing/browser": "^0.2.0",
-    "@zxing/library": "^0.22.0",
     "convex": "^1.31.7",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.34.2",
     "lucide-react": "^0.572.0",
+    "qr-scanner": "^1.4.2",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { BrowserQRCodeReader } from "@zxing/browser";
+import QrScanner from "qr-scanner";
 
 export function useQrScanner({
   elementId,
@@ -26,55 +26,51 @@ export function useQrScanner({
       return;
     }
 
-    // Create or reuse video element
-    let video = container.querySelector("video") as HTMLVideoElement | null;
-    if (!video) {
-      video = document.createElement("video");
-      video.setAttribute("playsinline", "true");
-      video.setAttribute("autoplay", "true");
-      video.style.width = "100%";
-      video.style.height = "100%";
-      video.style.objectFit = "cover";
-      video.style.display = "block";
-      container.appendChild(video);
-    }
+    const video = document.createElement("video");
+    video.style.width = "100%";
+    video.style.height = "100%";
+    video.style.objectFit = "cover";
+    video.style.display = "block";
+    container.innerHTML = "";
+    container.appendChild(video);
 
-    const codeReader = new BrowserQRCodeReader();
-    setError(null);
     let active = true;
-    let controlsRef: { stop: () => void } | null = null;
 
-    codeReader
-      .decodeFromVideoDevice(undefined, video, (result, err, controls) => {
-        if (!active) {
-          controls.stop();
-          return;
-        }
-        if (result) {
-          const text = result.getText();
-          console.log("[ZXing] QR detected:", text);
-          onScanRef.current(text);
-        }
-        if (err && err.name !== "NotFoundException") {
-          console.debug("[ZXing] decode error:", err.name);
-        }
-        controlsRef = controls;
-      })
-      .catch((err: unknown) => {
+    const scanner = new QrScanner(
+      video,
+      (result) => {
         if (!active) return;
-        const message = err instanceof Error ? err.message : String(err);
-        console.error("[ZXing] Camera start failed:", message);
-        setError(message || "Camera failed to start");
-      });
+        console.log("[QR] Detected:", result.data);
+        onScanRef.current(result.data);
+      },
+      {
+        returnDetailedScanResult: true,
+        onDecodeError: (err) => {
+          if (err !== QrScanner.NO_QR_CODE_FOUND) {
+            console.log("[QR] Error:", err);
+          }
+        },
+        preferredCamera: "environment",
+        maxScansPerSecond: 25,
+        highlightScanRegion: true,
+      }
+    );
+
+    setError(null);
+
+    scanner.start().catch((err: unknown) => {
+      if (!active) return;
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("[QR] Camera start failed:", message);
+      setError(message || "Camera failed to start");
+    });
 
     return () => {
       active = false;
-      if (controlsRef) {
-        controlsRef.stop();
-      }
-      // Remove video element to clean up
-      if (video && video.parentNode === container) {
-        container.removeChild(video);
+      scanner.stop();
+      scanner.destroy();
+      if (video.parentNode) {
+        video.parentNode.removeChild(video);
       }
     };
   }, [enabled, elementId]);
