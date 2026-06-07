@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { motion } from "framer-motion";
-import { Html5Qrcode } from "html5-qrcode";
 import { ScanLine, Camera, Keyboard, Search, CheckCircle2, AlertTriangle, XCircle, Clock3 } from "lucide-react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/useAuth";
@@ -9,6 +8,7 @@ import { formatDate, formatDateTime } from "../lib/utils";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { toDisplayError, type AppErrorDetails } from "../lib/errorHandling";
 import { DetailedErrorPanel } from "../components/feedback/DetailedErrorPanel";
+import { useQrScanner } from "../lib/useQrScanner";
 
 type ScanResult = {
   status: "checked_in" | "already_checked_in" | "error";
@@ -30,15 +30,11 @@ export default function ScanQR() {
   const [manualCode, setManualCode] = useState("");
   const [scanning, setScanning] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
-  const [cameraError, setCameraError] = useState<string | null>(null);
   const [result, setResult] = useState<ScanResult | null>(null);
-  const scannerRef = useRef<Html5Qrcode | null>(null);
-  const lastScannedRef = useRef("");
   const scanningRef = useRef(false);
 
   const handleScan = useCallback(async (qrCode: string) => {
-    if (!sessionToken || scanningRef.current || qrCode === lastScannedRef.current) return;
-    lastScannedRef.current = qrCode;
+    if (!sessionToken || scanningRef.current) return;
     scanningRef.current = true;
     setScanning(true);
     setResult(null);
@@ -54,38 +50,14 @@ export default function ScanQR() {
     } finally {
       scanningRef.current = false;
       setScanning(false);
-      setTimeout(() => {
-        lastScannedRef.current = "";
-      }, 3000);
     }
   }, [checkIn, sessionToken]);
 
-  const handleScanRef = useRef(handleScan);
-  useEffect(() => {
-    handleScanRef.current = handleScan;
-  }, [handleScan]);
-
-  useEffect(() => {
-    if (!cameraActive || scannerMode !== "camera") return;
-    const scanner = new Html5Qrcode("scan-reader");
-    scannerRef.current = scanner;
-    setCameraError(null);
-    scanner
-      .start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 230, height: 230 } }, (decodedText) => {
-        void handleScanRef.current(decodedText);
-      }, () => {})
-      .catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : String(err);
-        setCameraError(message || "Camera failed to start");
-        setCameraActive(false);
-      });
-
-    return () => {
-      if (scanner.isScanning) {
-        void scanner.stop();
-      }
-    };
-  }, [cameraActive, scannerMode]);
+  const { error: cameraError, stopCamera } = useQrScanner({
+    onScan: handleScan,
+    enabled: cameraActive && scannerMode === "camera" && !result,
+    containerId: "scan-reader",
+  });
 
   const resetResult = () => {
     setResult(null);
@@ -116,6 +88,7 @@ export default function ScanQR() {
             <button
               onClick={() => {
                 setScannerMode("manual");
+                stopCamera();
                 setCameraActive(false);
               }}
               className={`flex-1 py-2 text-xs font-black uppercase tracking-widest border-2 ${scannerMode === "manual" ? "bg-black text-white border-theme-strong" : "border-transparent text-theme-muted"}`}
@@ -164,11 +137,6 @@ export default function ScanQR() {
             ) : (
               <div className="space-y-3">
                 <div id="scan-reader" className="min-h-[290px] border-4 border-theme-strong bg-theme-sidebar" />
-                {cameraError && (
-                  <div className="p-3 border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider">
-                    {cameraError}. Check camera permissions or try manual entry.
-                  </div>
-                )}
                 {!cameraActive && !cameraError && (
                   <button
                     onClick={() => setCameraActive(true)}
@@ -178,15 +146,20 @@ export default function ScanQR() {
                   </button>
                 )}
                 {cameraError && (
-                  <button
-                    onClick={() => {
-                      setCameraError(null);
-                      setCameraActive(true);
-                    }}
-                    className="w-full h-11 border-2 border-theme-strong bg-black text-white font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
-                  >
-                    Retry camera
-                  </button>
+                  <div className="space-y-2">
+                    <div className="p-3 border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider">
+                      {cameraError}
+                    </div>
+                    <button
+                      onClick={() => {
+                        setCameraActive(false);
+                        setTimeout(() => setCameraActive(true), 100);
+                      }}
+                      className="w-full h-11 border-2 border-theme-strong bg-black text-white font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
+                    >
+                      Retry camera
+                    </button>
+                  </div>
                 )}
               </div>
             )

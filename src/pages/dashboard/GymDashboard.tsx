@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 // Deploy trigger: simplified dashboard copy
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Html5Qrcode } from "html5-qrcode";
 import {
     Users,
     CheckCircle2,
@@ -24,6 +23,7 @@ import type { Doc } from "../../../convex/_generated/dataModel";
 import { useAuth } from "../../lib/useAuth";
 import { toDisplayError, type AppErrorDetails } from "../../lib/errorHandling";
 import { DetailedErrorPanel } from "../../components/feedback/DetailedErrorPanel";
+import { useQrScanner } from "../../lib/useQrScanner";
 
 type ScanResult = {
     status: "checked_in" | "already_checked_in" | "error";
@@ -49,17 +49,11 @@ export default function GymDashboard() {
     const [scanning, setScanning] = useState(false);
     const [result, setResult] = useState<ScanResult | null>(null);
     const [cameraActive, setCameraActive] = useState(false);
-    const [cameraError, setCameraError] = useState<string | null>(null);
-    const scannerRef = useRef<Html5Qrcode | null>(null);
-    const lastScannedRef = useRef<string>("");
     const scanningRef = useRef(false);
 
     const handleScan = useCallback(
         async (qrCode: string) => {
             if (scanningRef.current) return;
-            if (qrCode === lastScannedRef.current) return;
-
-            lastScannedRef.current = qrCode;
             scanningRef.current = true;
             setScanning(true);
             setResult(null);
@@ -76,18 +70,17 @@ export default function GymDashboard() {
             } finally {
                 scanningRef.current = false;
                 setScanning(false);
-                setTimeout(() => {
-                    lastScannedRef.current = "";
-                }, 5000);
             }
         },
         [checkIn, sessionToken]
     );
 
-    const handleScanRef = useRef(handleScan);
-    useEffect(() => {
-        handleScanRef.current = handleScan;
-    }, [handleScan]);
+    const { error: cameraError, stopCamera } = useQrScanner({
+        onScan: handleScan,
+        enabled: cameraActive && scannerMode === "camera" && !result,
+        containerId: "qr-reader-main",
+        cooldownMs: 5000,
+    });
 
     const handleManualSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -96,37 +89,9 @@ export default function GymDashboard() {
         }
     };
 
-    useEffect(() => {
-        if (scannerMode !== "camera" || !cameraActive) return;
-
-        const scanner = new Html5Qrcode("qr-reader-main");
-        scannerRef.current = scanner;
-        setCameraError(null);
-
-        scanner
-            .start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 220, height: 220 } },
-                (decodedText) => handleScanRef.current(decodedText),
-                () => {}
-            )
-            .catch((err: unknown) => {
-                const message = err instanceof Error ? err.message : String(err);
-                setCameraError(message || "Camera failed to start");
-                setCameraActive(false);
-            });
-
-        return () => {
-            if (scanner.isScanning) {
-                scanner.stop().catch(() => {});
-            }
-        };
-    }, [scannerMode, cameraActive]);
-
     const resetResult = () => {
         setResult(null);
         setManualCode("");
-        lastScannedRef.current = "";
     };
 
     if (!stats) {
@@ -163,7 +128,7 @@ export default function GymDashboard() {
                         <div className="p-4 md:p-6">
                             <div className="flex gap-2 mb-4 md:mb-6 border-2 border-theme-strong p-1 bg-theme-sidebar">
                                 <button
-                                    onClick={() => { setScannerMode("manual"); setCameraActive(false); }}
+                                    onClick={() => { setScannerMode("manual"); stopCamera(); setCameraActive(false); }}
                                     className={`flex-1 flex items-center justify-center gap-2 py-3 px-3 text-xs font-black uppercase tracking-widest transition-all ${
                                         scannerMode === "manual"
                                             ? "bg-black text-white border-2 border-theme-strong shadow-[2px_2px_0px_0px_rgba(204,255,0,1)] translate-x-[-2px] translate-y-[-2px]"
@@ -229,22 +194,6 @@ export default function GymDashboard() {
                                                     className="overflow-hidden border-4 border-theme-strong bg-theme-sidebar"
                                                     style={{ minHeight: "280px" }}
                                                 />
-                                                {cameraError && (
-                                                    <div className="space-y-2 p-3">
-                                                        <div className="border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider text-center">
-                                                            {cameraError}. Check camera permissions or try manual entry.
-                                                        </div>
-                                                        <button
-                                                            onClick={() => {
-                                                                setCameraError(null);
-                                                                setCameraActive(true);
-                                                            }}
-                                                            className="w-full py-2 border-2 border-theme-strong bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
-                                                        >
-                                                            Retry camera
-                                                        </button>
-                                                    </div>
-                                                )}
                                                 {!cameraActive && !cameraError && (
                                                     <button
                                                         onClick={() => setCameraActive(true)}
@@ -255,6 +204,22 @@ export default function GymDashboard() {
                                                         </div>
                                                         <span className="text-sm font-black uppercase tracking-widest text-[#ccff00]">Turn On Camera</span>
                                                     </button>
+                                                )}
+                                                {cameraError && (
+                                                    <div className="space-y-2 p-3">
+                                                        <div className="border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider text-center">
+                                                            {cameraError}
+                                                        </div>
+                                                        <button
+                                                            onClick={() => {
+                                                                setCameraActive(false);
+                                                                setTimeout(() => setCameraActive(true), 100);
+                                                            }}
+                                                            className="w-full py-2 border-2 border-theme-strong bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
+                                                        >
+                                                            Retry camera
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </div>
                                         )}
