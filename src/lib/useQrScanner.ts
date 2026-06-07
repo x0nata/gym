@@ -18,6 +18,7 @@ export function useQrScanner({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const engineRef = useRef<Worker | BarcodeDetector | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const setupActiveRef = useRef(false);
 
   useEffect(() => {
     QrScanner.createQrEngine()
@@ -33,6 +34,7 @@ export function useQrScanner({
 
   useEffect(() => {
     if (!enabled) {
+      setupActiveRef.current = false;
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
@@ -44,49 +46,66 @@ export function useQrScanner({
       return;
     }
 
-    const container = document.getElementById(elementId);
-    if (!container) {
-      setError("Scanner container not found");
-      return;
-    }
+    setupActiveRef.current = true;
+    setError(null);
+    let attempts = 0;
+    let rafId = 0;
+    let streamActive = false;
 
-    let active = true;
-    const video = document.createElement("video");
-    video.setAttribute("playsinline", "");
-    video.setAttribute("autoplay", "");
-    video.muted = true;
-    video.style.width = "100%";
-    video.style.height = "100%";
-    video.style.objectFit = "cover";
-    video.style.display = "block";
-    videoRef.current = video;
-    container.innerHTML = "";
-    container.appendChild(video);
+    const trySetup = () => {
+      if (!setupActiveRef.current) return;
 
-    navigator.mediaDevices
-      .getUserMedia({
-        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false,
-      })
-      .then((stream) => {
-        if (!active) { stream.getTracks().forEach((t) => t.stop()); return; }
-        streamRef.current = stream;
-        video.srcObject = stream;
-        return video.play();
-      })
-      .then(() => {
-        if (active) { setError(null); console.log("[QR] Camera ready"); }
-      })
-      .catch((err: unknown) => {
-        if (!active) return;
-        const message = err instanceof Error ? err.message : String(err);
-        console.error("[QR] Camera start failed:", message);
-        setError(message || "Camera failed to start");
-      });
+      const container = document.getElementById(elementId);
+      if (!container) {
+        if (attempts++ < 60) {
+          rafId = requestAnimationFrame(trySetup);
+        } else {
+          setError("Scanner container not found");
+        }
+        return;
+      }
+
+      streamActive = true;
+      const video = document.createElement("video");
+      video.setAttribute("playsinline", "");
+      video.setAttribute("autoplay", "");
+      video.muted = true;
+      video.style.width = "100%";
+      video.style.height = "100%";
+      video.style.objectFit = "cover";
+      video.style.display = "block";
+      videoRef.current = video;
+      container.innerHTML = "";
+      container.appendChild(video);
+
+      navigator.mediaDevices
+        .getUserMedia({
+          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false,
+        })
+        .then((stream) => {
+          if (!setupActiveRef.current) { stream.getTracks().forEach((t) => t.stop()); return; }
+          streamRef.current = stream;
+          video.srcObject = stream;
+          return video.play();
+        })
+        .then(() => {
+          if (setupActiveRef.current) { setError(null); console.log("[QR] Camera ready"); }
+        })
+        .catch((err: unknown) => {
+          if (!setupActiveRef.current) return;
+          const message = err instanceof Error ? err.message : String(err);
+          console.error("[QR] Camera start failed:", message);
+          setError(message || "Camera failed to start");
+        });
+    };
+
+    rafId = requestAnimationFrame(trySetup);
 
     return () => {
-      active = false;
-      if (streamRef.current) {
+      setupActiveRef.current = false;
+      cancelAnimationFrame(rafId);
+      if (streamRef.current && streamActive) {
         streamRef.current.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
       }
