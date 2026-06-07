@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
+import { BrowserQRCodeReader } from "@zxing/browser";
 
 export function useQrScanner({
   elementId,
@@ -11,16 +11,12 @@ export function useQrScanner({
   enabled: boolean;
 }) {
   const [error, setError] = useState<string | null>(null);
-  const scannerRef = useRef<Html5Qrcode | null>(null);
   const onScanRef = useRef(onScan);
   onScanRef.current = onScan;
 
   useEffect(() => {
     if (!enabled) {
-      if (scannerRef.current?.isScanning) {
-        scannerRef.current.stop().catch(() => {});
-      }
-      scannerRef.current = null;
+      setError(null);
       return;
     }
 
@@ -30,36 +26,56 @@ export function useQrScanner({
       return;
     }
 
-    const scanner = new Html5Qrcode(elementId, {
-      formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-    });
-    scannerRef.current = scanner;
-    setError(null);
+    // Create or reuse video element
+    let video = container.querySelector("video") as HTMLVideoElement | null;
+    if (!video) {
+      video = document.createElement("video");
+      video.setAttribute("playsinline", "true");
+      video.setAttribute("autoplay", "true");
+      video.style.width = "100%";
+      video.style.height = "100%";
+      video.style.objectFit = "cover";
+      video.style.display = "block";
+      container.appendChild(video);
+    }
 
-    scanner
-      .start(
-        { facingMode: "environment" },
-        { fps: 15 },
-        (decodedText) => {
-          console.log("[QR] Scanned:", decodedText);
-          onScanRef.current(decodedText);
-        },
-        (errorMessage) => {
-          // Called on every frame without a QR code — ignore
-          // console.debug("[QR] no code:", errorMessage);
+    const codeReader = new BrowserQRCodeReader();
+    setError(null);
+    let active = true;
+    let controlsRef: { stop: () => void } | null = null;
+
+    codeReader
+      .decodeFromVideoDevice(undefined, video, (result, err, controls) => {
+        if (!active) {
+          controls.stop();
+          return;
         }
-      )
+        if (result) {
+          const text = result.getText();
+          console.log("[ZXing] QR detected:", text);
+          onScanRef.current(text);
+        }
+        if (err && err.name !== "NotFoundException") {
+          console.debug("[ZXing] decode error:", err.name);
+        }
+        controlsRef = controls;
+      })
       .catch((err: unknown) => {
+        if (!active) return;
         const message = err instanceof Error ? err.message : String(err);
-        console.error("[QR] Camera start failed:", message);
+        console.error("[ZXing] Camera start failed:", message);
         setError(message || "Camera failed to start");
       });
 
     return () => {
-      if (scanner.isScanning) {
-        scanner.stop().catch(() => {});
+      active = false;
+      if (controlsRef) {
+        controlsRef.stop();
       }
-      scannerRef.current = null;
+      // Remove video element to clean up
+      if (video && video.parentNode === container) {
+        container.removeChild(video);
+      }
     };
   }, [enabled, elementId]);
 
