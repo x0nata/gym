@@ -43,45 +43,7 @@
 - **Dark/Light Theme** - Full theme support across all pages
 - **Responsive Design** - Mobile-first layout with adaptive navigation
 
----
 
-## 🚀 Quick Start
-
-### Prerequisites
-- **Node.js** 18.x or 20.x
-- **Bun** or **npm**
-- **Convex** account (free tier available)
-
-### 📦 Installation
-
-```bash
-# Clone the repository
-git clone <your-repo-url>
-cd gym
-
-# Install dependencies
-npm install
-
-# Start Convex development server
-npm run dev:convex
-
-# Start frontend (in another terminal)
-npm run dev
-```
-
-The app will be available at `http://localhost:5173`
-
-### 🌍 Environment Configuration
-
-Create a `.env.local` file:
-
-```env
-VITE_CONVEX_URL=https://<your-deployment>.convex.cloud
-```
-
-Your Convex deployment URL is shown when you run `npm run dev:convex`.
-
----
 
 ## 🛠️ Tech Stack
 
@@ -168,6 +130,6 @@ npm run lint
 
 <div align="center">
 
-**Made with ⚡**
+**Made with 🤍**
 
 </div>
