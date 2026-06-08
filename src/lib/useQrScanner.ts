@@ -24,9 +24,9 @@ export function useQrScanner({
     QrScanner.createQrEngine()
       .then((engine) => {
         engineRef.current = engine;
-        console.log("[QR] Engine ready", engine instanceof Worker ? "worker" : "native");
+        // engine ready
       })
-      .catch((err) => console.error("[QR] Engine creation failed:", err));
+      .catch(() => { /* engine creation failure handled silently */ });
     return () => {
       engineRef.current = null;
     };
@@ -90,12 +90,12 @@ export function useQrScanner({
           return video.play();
         })
         .then(() => {
-          if (setupActiveRef.current) { setError(null); console.log("[QR] Camera ready"); }
+          if (setupActiveRef.current) { setError(null); }
         })
         .catch((err: unknown) => {
           if (!setupActiveRef.current) return;
           const message = err instanceof Error ? err.message : String(err);
-          console.error("[QR] Camera start failed:", message);
+
           setError(message || "Camera failed to start");
         });
     };
@@ -139,23 +139,17 @@ export function useQrScanner({
       if (!ctx) throw new Error("Failed to get canvas context");
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      console.log("[QR] Captured frame", canvas.width, "x", canvas.height);
-
       const result = await QrScanner.scanImage(canvas, {
         returnDetailedScanResult: true,
         qrEngine: engine,
         alsoTryWithoutScanRegion: true,
       });
-
-      console.log("[QR] Detected:", result.data);
       onScanRef.current(result.data);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes("No QR code")) {
-        console.log("[QR] Not found — try again");
         setError("No QR code found. Move closer and try again.");
       } else {
-        console.error("[QR] Scan error:", msg);
         setError("Scan failed. Try again.");
       }
     } finally {

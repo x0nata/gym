@@ -13,7 +13,7 @@ export function formatTimeAgo(date: number | Date) {
 }
 
 export function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount);
+  return `ETB ${amount.toLocaleString()}`;
 }
 
 export function getMembershipStatusColor(endDate: number) {

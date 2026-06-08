@@ -1,215 +1,173 @@
-# Kinetic Gym App
+# ⚡ KINETIC — Gym Management Platform
 
-React + Vite + Convex gym management system.
+<div align="center">
 
-## Quick start
+![KINETIC](https://img.shields.io/badge/KINETIC-Gym%20Management%20Platform-ccff00?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSIjY2NmZjAwIi8+Cjwvc3ZnPgo=)
+
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
+[![Convex](https://img.shields.io/badge/Convex-Backend-DC143C?style=for-the-badge)](https://convex.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+
+*A modern, full-stack gym management platform with QR check-ins, membership tracking, and member portals*
+
+[🎯 Features](#-features) • [🚀 Quick Start](#-quick-start) • [📖 Documentation](#-documentation) • [🛠️ Tech Stack](#️-tech-stack)
+
+</div>
+
+---
+
+## 🎯 Features
+
+### 🏋️ **Gym Operations**
+- **QR Check-ins** - Camera-based and manual member check-in with real-time validation
+- **Member Management** - Full member directory with search, profiles, and history
+- **Membership Plans** - Create and manage monthly, quarterly, semi-annual, and annual plans
+- **Invitation System** - Generate invitation codes for new member onboarding
+
+### 👥 **Member Portal**
+- **Personal Dashboard** - View membership status, check-in history, and daily motivation
+- **QR Code Access** - Unique QR code for quick gym entry
+- **Workout Plans** - View assigned workout schedules from coaches
+- **Meal Plans** - Track daily meals and nutritional targets
+
+### 📊 **Analytics & Reports**
+- **Revenue Tracking** - Payment history and revenue metrics
+- **Member Analytics** - Active rates, retention, and member breakdowns
+- **Visit Logs** - Real-time check-in feed with member details
+- **Expiry Alerts** - Automated notifications for expiring memberships
+
+### 🔧 **Admin Tools**
+- **Role-based Access** - Gym staff and member portals with separate views
+- **Notification Center** - System-wide alerts for membership events
+- **Dark/Light Theme** - Full theme support across all pages
+- **Responsive Design** - Mobile-first layout with adaptive navigation
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- **Node.js** 18.x or 20.x
+- **Bun** or **npm**
+- **Convex** account (free tier available)
+
+### 📦 Installation
 
 ```bash
+# Clone the repository
+git clone <your-repo-url>
+cd gym
+
+# Install dependencies
 npm install
+
+# Start Convex development server
+npm run dev:convex
+
+# Start frontend (in another terminal)
 npm run dev
 ```
 
-Create `.env.local` (copy from `.env.example`) and fill in your Convex URLs.
+The app will be available at `http://localhost:5173`
 
-## Deploy to Vercel
+### 🌍 Environment Configuration
 
-### 1. Push your code to GitHub
+Create a `.env.local` file:
 
-```bash
-git add .
-git commit -m "Ready for Vercel"
-git push origin main
+```env
+VITE_CONVEX_URL=https://<your-deployment>.convex.cloud
 ```
 
-### 2. Connect to Vercel
-
-1. Go to [vercel.com](https://vercel.com) and import your repo.
-2. Framework preset: **Vite**
-3. Build command: `npm run build`
-4. Output directory: `dist`
-5. Node version: `18.x` or `20.x`
-
-### 3. Add environment variables
-
-In Vercel project settings, add:
-
-| Name | Value |
-|------|-------|
-| `VITE_CONVEX_URL` | `https://<your-deployment>.convex.cloud` |
-| `VITE_CONVEX_SITE_URL` | `https://<your-deployment>.convex.site` |
-
-Get these from your [Convex dashboard](https://dashboard.convex.dev).
-
-### 4. Deploy Convex to production
-
-```bash
-npx convex deploy
-```
-
-This pushes your Convex functions to the production deployment.
-
-### 5. Redeploy Vercel
-
-After setting env vars, trigger a redeploy in Vercel.
+Your Convex deployment URL is shown when you run `npm run dev:convex`.
 
 ---
 
-## Migrate to Convex Auth
+## 🛠️ Tech Stack
 
-The app currently uses a **custom session-token auth** system (email/password with manual sessions). We have prepared the code to also support **@convex-dev/auth** — Convex's official auth library with OAuth, email/password, magic links, and more.
+<div align="center">
 
-### Why migrate?
+### Frontend
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
+[![React Router](https://img.shields.io/badge/React_Router-7-CA4245?style=flat-square&logo=react-router)](https://reactrouter.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+[![Framer Motion](https://img.shields.io/badge/Framer_Motion-12-0055FF?style=flat-square&logo=framer)](https://www.framer.com/motion/)
+[![Lucide](https://img.shields.io/badge/Lucide_Icons-0.572-F56565?style=flat-square)](https://lucide.dev/)
 
-- **Security**: `@convex-dev/auth` handles password hashing (bcrypt/Argon2), session rotation, and CSRF protection automatically.
-- **Features**: Easily add Google OAuth, password reset, email verification.
-- **Maintenance**: Official Convex package — always up to date.
+### Backend
+[![Convex](https://img.shields.io/badge/Convex-Realtime-FF6B6B?style=flat-square)](https://convex.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 
-### Migration steps
+### Testing & Quality
+[![Vitest](https://img.shields.io/badge/Vitest-4-6E9F18?style=flat-square&logo=vitest)](https://vitest.dev/)
+[![ESLint](https://img.shields.io/badge/ESLint-9-4B32C3?style=flat-square&logo=eslint)](https://eslint.org/)
 
-#### Step 1 — Update Convex Auth configuration
+### Deployment
+[![Vercel](https://img.shields.io/badge/Vercel-Deployment-000000?style=flat-square&logo=vercel)](https://vercel.com/)
 
-The `convex/auth.ts` file is already configured with the `Password` provider:
-
-```ts
-import { convexAuth } from "@convex-dev/auth/server";
-import { Password } from "@convex-dev/auth/providers/Password";
-
-export const { auth, signIn, signOut, store } = convexAuth({
-  providers: [Password],
-});
-```
-
-You can add OAuth providers here too:
-
-```ts
-import { Google } from "@convex-dev/auth/providers/Google";
-
-export const { auth, signIn, signOut, store } = convexAuth({
-  providers: [Password, Google],
-});
-```
-
-#### Step 2 — Deploy Convex Auth functions
-
-```bash
-npx convex dev      # local
-npx convex deploy     # production
-```
-
-This creates the auth tables (`users` managed by Convex Auth) in your Convex deployment.
-
-#### Step 3 — Switch frontend to Convex Auth
-
-In `src/lib/useAuth.tsx`, replace the legacy mutation calls with Convex Auth's `signIn` / `signOut`:
-
-```tsx
-import { useAuth as useConvexAuth } from "@convex-dev/auth/react";
-import { useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
-
-export function useAuth() {
-  const { isAuthenticated, user: convexUser } = useConvexAuth();
-  const signIn = useMutation(api.auth.signIn);
-  const signOut = useMutation(api.auth.signOut);
-
-  // ...map convexUser to your app's user shape
-}
-```
-
-#### Step 4 — Switch backend to identity-based auth
-
-In each Convex query/mutation, replace:
-
-```ts
-const user = await requireGymUser(ctx, args.sessionToken);
-```
-
-with:
-
-```ts
-const user = await requireGymUserFromIdentity(ctx);
-```
-
-The `require*FromIdentity` helpers are already in `convex/lib/session.ts`. They resolve the user from `ctx.auth.getUserIdentity()` instead of a session token.
-
-#### Step 5 — Migrate existing users
-
-Run a one-off migration script to link existing custom `users` records to Convex Auth identities. A helper is provided in `convex/migrateAuth.ts`:
-
-```bash
-npx convex run migrateAuth:migrateUsers
-```
-
-(You need to create this script if you have existing users.)
-
-#### Step 6 — Remove legacy auth code
-
-Once all users are migrated:
-
-1. Delete `convex/authLegacy.ts`
-2. Delete `convex/authSessions` table from schema
-3. Update `src/lib/useAuth.tsx` to remove legacy mutations
-4. Remove session token from localStorage logic
+</div>
 
 ---
 
-## Architecture
+## 📖 Documentation
 
-### Auth
-
-- **Current**: Custom email/password with `sessionToken` stored in `localStorage`
-- **Prepared**: `@convex-dev/auth` with `ConvexAuthProvider` already wired in `main.tsx`
-
-### Tech stack
-
-- React 19 + TypeScript
-- Vite 7
-- Tailwind CSS 4
-- Framer Motion
-- Convex (backend + database)
-- React Router 7
-
-### Project structure
+### 🏗️ Project Structure
 
 ```
-convex/
-  auth.ts              # Convex Auth configuration
-  authLegacy.ts        # Custom session auth (deprecated after migration)
-  schema.ts            # Database schema
-  lib/session.ts       # Auth helpers (supports both legacy + Convex Auth)
-  *.ts                 # Domain-specific backend functions
-src/
-  main.tsx             # Entry point (wraps ConvexAuthProvider)
-  App.tsx              # Routes with code-splitting
-  lib/
-    useAuth.tsx        # Legacy auth context
-    useTheme.tsx       # Light/dark theme
-    useQrScanner.ts    # Camera QR scanner hook
-    utils.ts           # Date/currency helpers
-    errorHandling.ts   # Error normalization
-  pages/               # Route components
-  components/          # Shared UI
-public/
-  favicon.svg
+📦 KINETIC Gym
+├── 🎨 src/                   # React Frontend
+│   ├──  components/         # Reusable UI components
+│   ├──  pages/              # Page components
+│   │   ├──  dashboard/      # Gym & member dashboards
+│   │   ├──  auth/           # Authentication pages
+│   │   └──  ...             # Feature pages
+│   ├──  lib/                # Hooks, utilities, context
+│   └──  test/               # Test setup
+└── ⚡ convex/               # Convex Backend
+    ├──  schema.ts           # Database schema
+    ├──  auth.ts             # Authentication logic
+    ├──  members.ts          # Member CRUD & stats
+    ├──  memberships.ts      # Membership management
+    ├──  checkIns.ts         # QR check-in system
+    ├──  notifications.ts    # Notification engine
+    ├──  invitations.ts      # Invitation code system
+    └──  lib/                # Shared utilities
+```
+
+### 🔑 Key Features Implementation
+
+- **Authentication**: Role-based auth (gym staff / member) with session tokens
+- **QR Check-in**: Camera-based scanning with qr-scanner + BarcodeDetector API
+- **Membership Management**: Plan types, expiry tracking, auto-notifications
+- **Real-time Updates**: Convex reactive queries for live data
+- **Responsive Design**: Mobile-first with adaptive layouts
+- **Dark/Light Theme**: Persistent theme preference with CSS variables
+- **Brutalist UI**: High-contrast design language with strong borders and typography
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run tests
+npm run test
+
+# Watch mode
+npm run test:watch
 ```
 
 ---
 
-## Scripts
+## 🔧 Linting
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start Vite dev server |
-| `npm run dev:convex` | Start Convex dev |
-| `npm run dev:all` | Start both (local only) |
-| `npm run build` | Production build |
-| `npm run lint` | ESLint |
-| `npm run test` | Vitest (unit tests) |
-| `npm run preview` | Preview production build |
-| `npx convex deploy` | Deploy Convex functions |
+```bash
+npm run lint
+```
 
 ---
 
-## License
+<div align="center">
 
-MIT
+**Made with ⚡**
+
+</div>

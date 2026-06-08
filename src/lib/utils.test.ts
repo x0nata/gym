@@ -23,9 +23,9 @@ describe('utils', () => {
   })
 
   describe('formatCurrency', () => {
-    it('formats a number to USD currency', () => {
-      expect(formatCurrency(49.99)).toBe('$49.99')
-      expect(formatCurrency(1000)).toBe('$1,000.00')
+    it('formats a number to ETB', () => {
+      expect(formatCurrency(49.99)).toBe('ETB 49.99')
+      expect(formatCurrency(1000)).toBe('ETB 1,000')
     })
   })
 

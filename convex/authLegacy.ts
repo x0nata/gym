@@ -1,7 +1,6 @@
 import { mutation, query, type QueryCtx, type MutationCtx } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
-import { requireGymUser } from "./lib/session";
 
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 
@@ -543,24 +542,4 @@ export const logoutAll = mutation({
   },
 });
 
-export const deleteAllData = mutation({
-  args: { sessionToken: v.string() },
-  handler: async (ctx, _args) => {
-    await requireGymUser(ctx, _args.sessionToken);
 
-    const tables = ["authSessions", "users", "gyms", "members", "checkIns", "invitations", "notifications"];
-
-    for (const table of tables) {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const documents = await ctx.db.query(table as any).collect();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await Promise.all(documents.map((doc: Doc<any>) => ctx.db.delete(doc._id)));
-      } catch {
-        // ignore tables that don't exist
-      }
-    }
-
-    return { success: true };
-  },
-});
