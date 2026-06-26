@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { motion } from "framer-motion";
-import { ScanLine, Camera, Keyboard, Search, CheckCircle2, AlertTriangle, XCircle, Clock3 } from "lucide-react";
+import { ScanLine, Camera, Keyboard, Search, CheckCircle2, AlertTriangle, XCircle, Clock3, Scan } from "lucide-react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/useAuth";
 import { formatDate, formatDateTime } from "../lib/utils";
@@ -50,7 +50,7 @@ export default function ScanQR() {
     }
   }, [checkIn, sessionToken]);
 
-  const { error: cameraError, capture, capturing } = useQrScanner({
+  const { error: cameraError, active: scannerActive } = useQrScanner({
     elementId: "scan-reader",
     onScan: handleScan,
     enabled: cameraActive && scannerMode === "camera" && !result,
@@ -132,7 +132,33 @@ export default function ScanQR() {
               </form>
             ) : (
               <div className="space-y-3">
-                <div id="scan-reader" className="border-4 border-theme-strong bg-theme-sidebar relative" style={{ aspectRatio: "1/1", maxWidth: "400px", width: "100%", margin: "0 auto" }} />
+                <div className="relative border-4 border-theme-strong bg-theme-sidebar overflow-hidden" style={{ aspectRatio: "1/1", maxWidth: "400px", width: "100%", margin: "0 auto" }}>
+                  <div id="scan-reader" className="w-full h-full" />
+                  {cameraActive && !cameraError && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute top-3 left-3 w-7 h-7 border-t-4 border-l-4 border-[#ccff00]" />
+                      <div className="absolute top-3 right-3 w-7 h-7 border-t-4 border-r-4 border-[#ccff00]" />
+                      <div className="absolute bottom-3 left-3 w-7 h-7 border-b-4 border-l-4 border-[#ccff00]" />
+                      <div className="absolute bottom-3 right-3 w-7 h-7 border-b-4 border-r-4 border-[#ccff00]" />
+                      <motion.div
+                        className="absolute left-3 right-3 h-0.5 bg-[#ccff00] shadow-[0_0_8px_#ccff00]"
+                        animate={{ top: ["12%", "88%", "12%"] }}
+                        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                      <div className="absolute bottom-4 left-0 right-0 text-center">
+                        <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#ccff00] bg-black/70 px-2.5 py-1">
+                          <Scan className="h-3.5 w-3.5" />
+                          {scannerActive ? "Scanning" : "Ready"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {cameraError && (
+                  <div className="p-3 border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider text-center">
+                    {cameraError}
+                  </div>
+                )}
                 {!cameraActive && !cameraError && (
                   <button
                     onClick={() => setCameraActive(true)}
@@ -141,41 +167,16 @@ export default function ScanQR() {
                     Start scanner
                   </button>
                 )}
-                {cameraActive && (
-                  <div className="space-y-2">
-                    {cameraError && (
-                      <div className="p-3 border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider text-center">
-                        {cameraError}
-                      </div>
-                    )}
-                    <button
-                      onClick={() => capture()}
-                      disabled={capturing || scanning}
-                      className="w-full h-12 border-2 border-theme-strong bg-[#ccff00] text-black font-black uppercase tracking-widest hover:bg-[#b3e600] transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
-                    >
-                      {capturing ? (
-                        <><div className="h-5 w-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Scanning...</>
-                      ) : (
-                        "Scan QR code"
-                      )}
-                    </button>
-                  </div>
-                )}
-                {!cameraActive && cameraError && (
-                  <div className="space-y-2">
-                    <div className="p-3 border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider">
-                      {cameraError}
-                    </div>
-                    <button
-                      onClick={() => {
-                        setCameraActive(false);
-                        setTimeout(() => setCameraActive(true), 100);
-                      }}
-                      className="w-full h-11 border-2 border-theme-strong bg-black text-white font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
-                    >
-                      Retry camera
-                    </button>
-                  </div>
+                {cameraError && (
+                  <button
+                    onClick={() => {
+                      setCameraActive(false);
+                      setTimeout(() => setCameraActive(true), 100);
+                    }}
+                    className="w-full h-11 border-2 border-theme-strong bg-black text-white font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
+                  >
+                    Retry camera
+                  </button>
                 )}
               </div>
             )

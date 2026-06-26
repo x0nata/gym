@@ -15,7 +15,8 @@ import {
     Activity,
     TrendingUp,
     ChevronRight,
-    Search
+    Search,
+    Scan
 } from "lucide-react";
 import { formatDateTime, formatTimeAgo, formatDate } from "../../lib/utils";
 import type { Doc } from "../../../convex/_generated/dataModel";
@@ -71,7 +72,7 @@ export default function GymDashboard() {
         [checkIn, sessionToken]
     );
 
-    const { error: cameraError, capture, capturing } = useQrScanner({
+    const { error: cameraError, active: scannerActive } = useQrScanner({
         elementId: "qr-reader-main",
         onScan: handleScan,
         enabled: cameraActive && scannerMode === "camera" && !result,
@@ -185,10 +186,30 @@ export default function GymDashboard() {
                                         ) : (
                                             <div className="relative">
                                                 <div
-                                                    id="qr-reader-main"
-                                                    className="overflow-hidden border-4 border-theme-strong bg-theme-sidebar"
+                                                    className="relative overflow-hidden border-4 border-theme-strong bg-theme-sidebar"
                                                     style={{ aspectRatio: "1/1", maxWidth: "400px", width: "100%", margin: "0 auto" }}
-                                                />
+                                                >
+                                                    <div id="qr-reader-main" className="w-full h-full" />
+                                                    {cameraActive && !cameraError && (
+                                                        <div className="absolute inset-0 pointer-events-none">
+                                                            <div className="absolute top-3 left-3 w-7 h-7 border-t-4 border-l-4 border-[#ccff00]" />
+                                                            <div className="absolute top-3 right-3 w-7 h-7 border-t-4 border-r-4 border-[#ccff00]" />
+                                                            <div className="absolute bottom-3 left-3 w-7 h-7 border-b-4 border-l-4 border-[#ccff00]" />
+                                                            <div className="absolute bottom-3 right-3 w-7 h-7 border-b-4 border-r-4 border-[#ccff00]" />
+                                                            <motion.div
+                                                                className="absolute left-3 right-3 h-0.5 bg-[#ccff00] shadow-[0_0_8px_#ccff00]"
+                                                                animate={{ top: ["12%", "88%", "12%"] }}
+                                                                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                                                            />
+                                                            <div className="absolute bottom-4 left-0 right-0 text-center">
+                                                                <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#ccff00] bg-black/70 px-2.5 py-1">
+                                                                    <Scan className="h-3.5 w-3.5" />
+                                                                    {scannerActive ? "Scanning" : "Ready"}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
                                                 {!cameraActive && !cameraError && (
                                                     <button
                                                         onClick={() => setCameraActive(true)}
@@ -200,41 +221,21 @@ export default function GymDashboard() {
                                                         <span className="text-sm font-black uppercase tracking-widest text-[#ccff00]">Start camera</span>
                                                     </button>
                                                 )}
-                                                {cameraActive && (
-                                                    <div className="space-y-2 p-3">
-                                                        {cameraError && (
-                                                            <div className="border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider text-center p-2">
-                                                                {cameraError}
-                                                            </div>
-                                                        )}
-                                                        <button
-                                                            onClick={() => capture()}
-                                                            disabled={capturing || scanning}
-                                                            className="w-full py-3 border-2 border-theme-strong bg-[#ccff00] text-black font-black uppercase tracking-widest hover:bg-[#b3e600] transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
-                                                        >
-                                                            {capturing ? (
-                                                                <><div className="h-5 w-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Scanning...</>
-                                                            ) : (
-                                                                "Scan QR"
-                                                            )}
-                                                        </button>
+                                                {cameraError && (
+                                                    <div className="p-3 mt-3 border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider text-center">
+                                                        {cameraError}
                                                     </div>
                                                 )}
-                                                {!cameraActive && cameraError && (
-                                                    <div className="space-y-2 p-3">
-                                                        <div className="border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider text-center">
-                                                            {cameraError}
-                                                        </div>
-                                                        <button
-                                                            onClick={() => {
-                                                                setCameraActive(false);
-                                                                setTimeout(() => setCameraActive(true), 100);
-                                                            }}
-                                                            className="w-full py-2 border-2 border-theme-strong bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
-                                                        >
-                                                            Try again
-                                                        </button>
-                                                    </div>
+                                                {cameraError && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setCameraActive(false);
+                                                            setTimeout(() => setCameraActive(true), 100);
+                                                        }}
+                                                        className="w-full py-2 mt-2 border-2 border-theme-strong bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
+                                                    >
+                                                        Try again
+                                                    </button>
                                                 )}
                                             </div>
                                         )}

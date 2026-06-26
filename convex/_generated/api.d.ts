@@ -12,7 +12,6 @@ import type * as auth from "../auth.js";
 import type * as authLegacy from "../authLegacy.js";
 import type * as checkIns from "../checkIns.js";
 import type * as classes from "../classes.js";
-import type * as clearData from "../clearData.js";
 import type * as coachMembers from "../coachMembers.js";
 import type * as coaches from "../coaches.js";
 import type * as crons from "../crons.js";
@@ -37,7 +36,6 @@ declare const fullApi: ApiFromModules<{
   authLegacy: typeof authLegacy;
   checkIns: typeof checkIns;
   classes: typeof classes;
-  clearData: typeof clearData;
   coachMembers: typeof coachMembers;
   coaches: typeof coaches;
   crons: typeof crons;
