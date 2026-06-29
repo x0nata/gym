@@ -1,14 +1,14 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { motion } from "framer-motion";
-import { ScanLine, Camera, Keyboard, Search, CheckCircle2, AlertTriangle, XCircle, Clock3, Scan } from "lucide-react";
+import { ScanLine, Camera, Keyboard, Search, CheckCircle2, AlertTriangle, XCircle, Clock3, Scan, ImageUp, Loader2 } from "lucide-react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/useAuth";
 import { formatDate, formatDateTime } from "../lib/utils";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { toDisplayError, type AppErrorDetails } from "../lib/errorHandling";
 import { DetailedErrorPanel } from "../components/feedback/DetailedErrorPanel";
-import { useQrScanner } from "../lib/useQrScanner";
+import { useQrScanner, scanImageFile } from "../lib/useQrScanner";
 
 type ScanResult = {
   status: "checked_in" | "already_checked_in" | "error";
@@ -26,11 +26,15 @@ export default function ScanQR() {
   const todayCheckIns = useQuery(api.checkIns.getToday, sessionToken ? { sessionToken } : "skip");
   const checkIn = useMutation(api.checkIns.scanAndCheckIn);
 
-  const [scannerMode, setScannerMode] = useState<"manual" | "camera">("manual");
+  const [scannerMode, setScannerMode] = useState<"manual" | "camera" | "photo">("manual");
   const [manualCode, setManualCode] = useState("");
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
+  const [photoFile, setPhotoFile] = useState<{ file: File; preview: string } | null>(null);
+  const [photoScanning, setPhotoScanning] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleScan = useCallback(async (qrCode: string) => {
     if (!sessionToken) return;
@@ -55,6 +59,33 @@ export default function ScanQR() {
     onScan: handleScan,
     enabled: cameraActive && scannerMode === "camera" && !result,
   });
+
+  const handlePhotoFile = useCallback(async (file: File) => {
+    const preview = URL.createObjectURL(file);
+    setPhotoFile({ file, preview });
+    setPhotoError(null);
+    setPhotoScanning(true);
+    try {
+      const code = await scanImageFile(file);
+      if (code) {
+        URL.revokeObjectURL(preview);
+        setPhotoFile(null);
+        void handleScan(code);
+      } else {
+        setPhotoError("No QR code found in image");
+      }
+    } catch {
+      setPhotoError("Failed to scan image");
+    } finally {
+      setPhotoScanning(false);
+    }
+  }, [handleScan]);
+
+  const onFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) void handlePhotoFile(f);
+    e.target.value = "";
+  }, [handlePhotoFile]);
 
   const resetResult = () => {
     setResult(null);
@@ -100,6 +131,15 @@ export default function ScanQR() {
             >
               <span className="inline-flex items-center gap-2"><Camera className="h-4 w-4" /> Camera</span>
             </button>
+            <button
+              onClick={() => {
+                setScannerMode("photo");
+                setCameraActive(false);
+              }}
+              className={`flex-1 py-2 text-xs font-black uppercase tracking-widest border-2 ${scannerMode === "photo" ? "bg-[#ccff00] text-black border-theme-strong" : "border-transparent text-theme-muted"}`}
+            >
+              <span className="inline-flex items-center gap-2"><ImageUp className="h-4 w-4" /> Photo</span>
+            </button>
           </div>
 
           {!result ? (
@@ -130,6 +170,66 @@ export default function ScanQR() {
                   {scanning ? "Checking..." : "Check in"}
                 </button>
               </form>
+            ) : scannerMode === "photo" ? (
+              <div className="space-y-4">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={onFileInput}
+                  className="hidden"
+                />
+                {photoFile ? (
+                  <div className="relative border-4 border-theme-strong bg-theme-sidebar overflow-hidden" style={{ aspectRatio: "1/1", maxWidth: "400px", width: "100%", margin: "0 auto" }}>
+                    <img src={photoFile.preview} alt="Uploaded QR" className="w-full h-full object-contain" />
+                    {photoScanning && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                        <Loader2 className="h-8 w-8 text-[#ccff00] animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={photoScanning}
+                    className="w-full border-4 border-dashed border-theme-strong bg-theme-raised hover:bg-theme-sidebar transition-colors disabled:opacity-50"
+                    style={{ aspectRatio: "1/1", maxWidth: "400px", margin: "0 auto" }}
+                  >
+                    <div className="flex flex-col items-center justify-center h-full gap-3 p-6">
+                      <ImageUp className="h-10 w-10 text-theme-muted" />
+                      <span className="text-sm font-black uppercase tracking-widest text-theme-muted">Upload photo</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-theme-muted">QR code will be detected automatically</span>
+                    </div>
+                  </button>
+                )}
+                {photoError && (
+                  <div className="p-3 border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider text-center flex items-center justify-center gap-2">
+                    <XCircle className="h-4 w-4 shrink-0" />
+                    {photoError}
+                  </div>
+                )}
+                {photoFile && !photoScanning && !photoError && (
+                  <button
+                    onClick={() => {
+                      URL.revokeObjectURL(photoFile.preview);
+                      setPhotoFile(null);
+                      setPhotoError(null);
+                    }}
+                    className="w-full h-11 border-2 border-theme-strong bg-black text-white font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
+                  >
+                    Try another photo
+                  </button>
+                )}
+                {photoFile && !photoScanning && photoError && (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full h-11 border-2 border-theme-strong bg-black text-white font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
+                  >
+                    Choose another photo
+                  </button>
+                )}
+              </div>
             ) : (
               <div className="space-y-3">
                 <div className="relative border-4 border-theme-strong bg-theme-sidebar overflow-hidden" style={{ aspectRatio: "1/1", maxWidth: "400px", width: "100%", margin: "0 auto" }}>

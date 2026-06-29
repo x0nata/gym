@@ -101,3 +101,15 @@ export function useQrScanner({
 
   return { error, active };
 }
+
+export async function scanImageFile(file: File): Promise<string | null> {
+  try {
+    const result = await QrScanner.scanImage(file, {
+      returnDetailedScanResult: true,
+      alsoTryWithoutScanRegion: true,
+    });
+    return result?.data ?? null;
+  } catch {
+    return null;
+  }
+}
