@@ -73,6 +73,17 @@ export async function requireCoachUser(ctx: QueryCtx | MutationCtx, sessionToken
   return user;
 }
 
+export async function requireSuperadminUser(ctx: QueryCtx | MutationCtx, sessionToken: string) {
+  const user = await requireSessionUser(ctx, sessionToken);
+  if (user.role !== "superadmin") {
+    throw new ConvexError({
+      code: "FORBIDDEN",
+      message: "Superadmin access required.",
+    });
+  }
+  return user;
+}
+
 /* ────────────── Convex Auth identity helpers ──────────────
  *  These are used when you migrate to @convex-dev/auth.
  *  They look up the user by the Convex Auth identity email,

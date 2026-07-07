@@ -2,6 +2,7 @@ import { Suspense, lazy } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { AppLayout } from "./components/layout/AppLayout";
+import { AdminLayout } from "./components/layout/AdminLayout";
 import { useAuth } from "./lib/useAuth";
 
 const Landing = lazy(() => import("./pages/landing/Landing"));
@@ -15,6 +16,12 @@ const Reports = lazy(() => import("./pages/Reports"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const MemberPlans = lazy(() => import("./pages/member/Plans"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const AdminOverview = lazy(() => import("./pages/admin/Overview"));
+const AdminGyms = lazy(() => import("./pages/admin/Gyms"));
+const AdminGymDetail = lazy(() => import("./pages/admin/GymDetail"));
+const AdminUsers = lazy(() => import("./pages/admin/Users"));
+const AdminRevenue = lazy(() => import("./pages/admin/Revenue"));
+const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 
 function LoadingScreen() {
     return (
@@ -64,7 +71,7 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
     }
 
     if (isAuthenticated) {
-        return <Navigate to={user?.role === "member" ? "/member/dashboard" : "/dashboard"} replace />;
+        return <Navigate to={user?.role === "superadmin" ? "/admin" : user?.role === "member" ? "/member/dashboard" : "/dashboard"} replace />;
     }
 
     return <>{children}</>;
@@ -100,6 +107,24 @@ function MemberOnlyRoute({ children }: { children: React.ReactNode }) {
     }
 
     if (user?.role !== "member") {
+        return <Navigate to="/dashboard" replace />;
+    }
+
+    return <>{children}</>;
+}
+
+function AdminOnlyRoute({ children }: { children: React.ReactNode }) {
+    const { user, isAuthenticated, isInitialized } = useAuth();
+
+    if (!isInitialized) {
+        return <LoadingScreen />;
+    }
+
+    if (!isAuthenticated) {
+        return <Navigate to="/admin/auth" replace />;
+    }
+
+    if (user?.role !== "superadmin") {
         return <Navigate to="/dashboard" replace />;
     }
 
@@ -222,6 +247,58 @@ function AnimatedRoutes() {
                             <MemberOnlyRoute>
                                 <AppLayout><MemberPlans /></AppLayout>
                             </MemberOnlyRoute>
+                        }
+                    />
+
+                    {/* Admin Login (public, redirects to /admin if already authenticated) */}
+                    <Route
+                        path="/admin/auth"
+                        element={
+                            <PublicOnlyRoute>
+                                <AdminLogin />
+                            </PublicOnlyRoute>
+                        }
+                    />
+
+                    {/* Admin Platform Routes */}
+                    <Route
+                        path="/admin"
+                        element={
+                            <AdminOnlyRoute>
+                                <AdminLayout><AdminOverview /></AdminLayout>
+                            </AdminOnlyRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/gyms"
+                        element={
+                            <AdminOnlyRoute>
+                                <AdminLayout><AdminGyms /></AdminLayout>
+                            </AdminOnlyRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/gyms/:id"
+                        element={
+                            <AdminOnlyRoute>
+                                <AdminLayout><AdminGymDetail /></AdminLayout>
+                            </AdminOnlyRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/users"
+                        element={
+                            <AdminOnlyRoute>
+                                <AdminLayout><AdminUsers /></AdminLayout>
+                            </AdminOnlyRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/revenue"
+                        element={
+                            <AdminOnlyRoute>
+                                <AdminLayout><AdminRevenue /></AdminLayout>
+                            </AdminOnlyRoute>
                         }
                     />
 

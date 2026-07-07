@@ -163,6 +163,13 @@ export const me = query({
       };
     }
 
+    if (user.role === "superadmin") {
+      return {
+        ...base,
+        displayName: "Admin",
+      };
+    }
+
     return {
       ...base,
       displayName: "User",
@@ -172,7 +179,7 @@ export const me = query({
 
 export const login = mutation({
   args: {
-    role: v.union(v.literal("gym"), v.literal("member")),
+    role: v.union(v.literal("gym"), v.literal("member"), v.literal("superadmin")),
     email: v.string(),
     password: v.string(),
     userAgent: v.optional(v.string()),

@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 import { DetailedErrorPanel } from "../../components/feedback/DetailedErrorPanel";
 import type { AppErrorDetails } from "../../lib/errorHandling";
 
-type Role = "gym" | "member";
+type Role = "gym" | "member" | "superadmin";
 type Mode = "signin" | "register";
 type MemberAuthMode = "regular" | "first-time";
 
@@ -48,7 +48,8 @@ export default function UnifiedAuth() {
 
   useEffect(() => {
     if (!isInitialized || !isAuthenticated) return;
-    navigate(user?.role === "member" ? "/member/dashboard" : "/dashboard", { replace: true });
+    const dest = user?.role === "superadmin" ? "/admin" : user?.role === "member" ? "/member/dashboard" : "/dashboard";
+    navigate(dest, { replace: true });
   }, [isAuthenticated, isInitialized, navigate, user?.role]);
 
   const gymMode = role === "gym" ? mode : "signin";
@@ -137,9 +138,8 @@ export default function UnifiedAuth() {
   }
 
   return (
-    <div className="min-h-screen bg-theme-raised text-slate-900 font-['Outfit'] selection:bg-[#ccff00] selection:text-theme flex flex-col md:flex-row relative">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] opacity-60 pointer-events-none dark:hidden" />
+    <div className="min-h-screen bg-theme text-theme font-['Outfit'] selection:bg-[#ccff00] selection:text-[#000000] flex flex-col md:flex-row relative">
+      <div className="absolute inset-0 z-0 pointer-events-none [background-size:24px_24px] opacity-60" style={{ backgroundImage: "radial-gradient(var(--border) 1px, transparent 1px)" }} />
 
       {/* Theme Toggle Button Top Right */}
       <button
@@ -151,7 +151,7 @@ export default function UnifiedAuth() {
       </button>
 
       {/* Left Branding Panel */}
-      <div className="hidden md:flex w-[40%] bg-black p-12 border-r-4 border-theme-strong relative z-10 flex-col justify-between text-white">
+      <div className="hidden md:flex w-[40%] bg-theme-sidebar p-12 border-r-4 border-theme-strong relative z-10 flex-col justify-between text-theme">
         <div>
           <Link to="/" className="inline-flex items-center gap-2 text-2xl font-black uppercase tracking-widest font-['Syncopate'] hover:text-[#ccff00] transition-colors mb-16">
             <Zap className="text-[#ccff00] w-6 h-6" /> KINETIC
@@ -182,7 +182,7 @@ export default function UnifiedAuth() {
         {/* Mobile Header */}
         <div className="md:hidden w-full flex items-center mb-6 pb-4 border-b-4 border-theme-strong">
            <Link to="/" className="inline-flex items-center gap-2 font-black uppercase tracking-widest font-['Syncopate']">
-            <Zap className="text-[#ccff00] fill-black w-5 h-5" /> <span className="text-base">KINETIC</span>
+            <Zap className="text-[#ccff00] w-5 h-5" /> <span className="text-base text-theme">KINETIC</span>
           </Link>
         </div>
 
@@ -214,9 +214,9 @@ export default function UnifiedAuth() {
                   setForm((prev) => ({ ...prev, invitationCode: "", phone: "", password: "", email: "" }));
                   setError(null);
                 }}
-              className={`flex-1 py-3 text-sm font-black uppercase tracking-widest transition-all ${
+               className={`flex-1 py-3 text-sm font-black uppercase tracking-widest transition-all ${
                 role === "member" 
-                  ? "bg-black text-white border-2 border-theme-strong shadow-[2px_2px_0px_0px_rgba(204,255,0,1)] translate-x-[-2px] translate-y-[-2px]" 
+                  ? "bg-theme-sidebar text-theme border-2 border-theme-strong shadow-[2px_2px_0px_0px_rgba(204,255,0,1)] translate-x-[-2px] translate-y-[-2px]" 
                   : "text-theme-muted hover:text-theme"
               }`}
               >
@@ -316,7 +316,7 @@ export default function UnifiedAuth() {
             )}
 
             {role === "member" && memberAuthMode === "first-time" && memberInviteVerified && (
-              <div className="bg-emerald-50 border-2 border-emerald-500 p-4 text-emerald-700 font-bold">
+              <div className="bg-emerald-500/10 border-2 border-emerald-500 p-4 text-emerald-600 dark:text-emerald-400 font-bold">
                 Invite checked{memberDisplayName ? ` for ${memberDisplayName}` : ""}. Pick your email and password.
               </div>
             )}
@@ -411,7 +411,7 @@ export default function UnifiedAuth() {
             <button 
               type="submit" 
               disabled={isLoading} 
-              className="w-full mt-8 bg-black text-white border-2 border-theme-strong p-5 font-black uppercase tracking-widest hover:bg-[#ccff00] hover:text-theme transition-colors shadow-[4px_4px_0px_0px_var(--border-strong)] hover:shadow-[4px_4px_0px_0px_var(--border-strong)] hover:translate-x-[6px] hover:translate-y-[6px] flex items-center justify-center gap-3 disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0px_0px_var(--border-strong)] disabled:hover:bg-black disabled:hover:text-white"
+              className="w-full mt-8 border-2 border-[#ccff00] bg-[#ccff00] text-[#000000] p-5 font-black uppercase tracking-widest hover:bg-[#b3e600] transition-colors shadow-[4px_4px_0px_0px_#ccff00] hover:translate-x-[-2px] hover:translate-y-[-2px] flex items-center justify-center gap-3 disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0"
             >
               {isLoading && <Loader2 className="h-5 w-5 animate-spin" />}
               {submitLabel}

@@ -6,7 +6,7 @@ import { toDisplayError, type AppErrorDetails } from "./errorHandling";
 
 const SESSION_KEY = "gym_app_session_token";
 
-type AuthRole = "gym" | "member";
+type AuthRole = "gym" | "member" | "superadmin";
 
 type AuthUser = {
   userId: Id<"users">;

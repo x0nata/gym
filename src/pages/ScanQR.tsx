@@ -99,8 +99,8 @@ export default function ScanQR() {
         animate={{ opacity: 1, y: 0 }}
         className="border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)]"
       >
-        <div className="p-6 border-b-4 border-theme-strong bg-theme-sidebar text-black flex items-center gap-4">
-          <div className="h-12 w-12 border-2 border-theme-strong bg-white text-black flex items-center justify-center">
+        <div className="p-6 border-b-4 border-theme-strong bg-theme-sidebar text-[#000000] flex items-center gap-4">
+          <div className="h-12 w-12 border-2 border-theme-strong bg-white text-[#000000] flex items-center justify-center">
             <ScanLine className="h-6 w-6" />
           </div>
           <div>
@@ -127,7 +127,7 @@ export default function ScanQR() {
                 setScannerMode("camera");
                 setCameraActive(true);
               }}
-              className={`flex-1 py-2 text-xs font-black uppercase tracking-widest border-2 ${scannerMode === "camera" ? "bg-[#ccff00] text-black border-theme-strong" : "border-transparent text-theme-muted"}`}
+              className={`flex-1 py-2 text-xs font-black uppercase tracking-widest border-2 ${scannerMode === "camera" ? "bg-[#ccff00] text-[#000000] border-theme-strong" : "border-transparent text-theme-muted"}`}
             >
               <span className="inline-flex items-center gap-2"><Camera className="h-4 w-4" /> Camera</span>
             </button>
@@ -136,7 +136,7 @@ export default function ScanQR() {
                 setScannerMode("photo");
                 setCameraActive(false);
               }}
-              className={`flex-1 py-2 text-xs font-black uppercase tracking-widest border-2 ${scannerMode === "photo" ? "bg-[#ccff00] text-black border-theme-strong" : "border-transparent text-theme-muted"}`}
+              className={`flex-1 py-2 text-xs font-black uppercase tracking-widest border-2 ${scannerMode === "photo" ? "bg-[#ccff00] text-[#000000] border-theme-strong" : "border-transparent text-theme-muted"}`}
             >
               <span className="inline-flex items-center gap-2"><ImageUp className="h-4 w-4" /> Photo</span>
             </button>
@@ -262,7 +262,7 @@ export default function ScanQR() {
                 {!cameraActive && !cameraError && (
                   <button
                     onClick={() => setCameraActive(true)}
-                    className="w-full h-11 border-2 border-theme-strong bg-[#ccff00] text-black font-black uppercase tracking-widest hover:bg-[#b3e600] transition-colors"
+                    className="w-full h-11 border-2 border-theme-strong bg-[#ccff00] text-[#000000] font-black uppercase tracking-widest hover:bg-[#b3e600] transition-colors"
                   >
                     Start scanner
                   </button>

@@ -5,7 +5,7 @@ export default defineSchema({
   users: defineTable({
     email: v.string(),
     passwordHash: v.optional(v.string()),
-    role: v.union(v.literal("gym"), v.literal("member"), v.literal("coach")),
+    role: v.union(v.literal("gym"), v.literal("member"), v.literal("coach"), v.literal("superadmin")),
     memberId: v.optional(v.id("members")),
     gymId: v.optional(v.id("gyms")),
     coachId: v.optional(v.id("coaches")),
@@ -14,7 +14,8 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_member", ["memberId"])
     .index("by_gym", ["gymId"])
-    .index("by_coach", ["coachId"]),
+    .index("by_coach", ["coachId"])
+    .index("by_role", ["role"]),
 
   authSessions: defineTable({
     userId: v.id("users"),
