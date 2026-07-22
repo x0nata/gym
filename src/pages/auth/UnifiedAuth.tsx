@@ -106,7 +106,7 @@ export default function UnifiedAuth() {
         email: form.email,
         password: form.password,
       });
-      if (!onboardingResult.success && "error" in result) setError(onboardingResult.error);
+      if (!onboardingResult.success && "error" in onboardingResult) setError(onboardingResult.error);
       return;
     }
 

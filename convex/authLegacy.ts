@@ -244,6 +244,13 @@ export const login = mutation({
       });
     }
 
+    if (args.role === "superadmin") {
+      throw new ConvexError({
+        code: "ADMIN_NOT_FOUND",
+        message: "No admin account found for this email. Use the bootstrap command to create a superadmin.",
+      });
+    }
+
     throw new ConvexError({
       code: "MEMBER_NOT_FOUND",
       message: "Member account not found. Use first-time access with invitation code.",
