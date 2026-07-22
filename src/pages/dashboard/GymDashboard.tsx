@@ -124,6 +124,192 @@ export default function GymDashboard() {
                 </p>
             </motion.div>
 
+            {/* Check-in */}
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="card overflow-hidden">
+                <div className="px-5 py-4 border-b border-theme flex items-center gap-2.5">
+                    <span className="grid h-9 w-9 place-items-center rounded-xl bg-energy/12 text-energy">
+                        <Zap className="h-5 w-5" />
+                    </span>
+                    <div>
+                        <h3 className="text-sm font-bold">Check-in</h3>
+                        <p className="text-[11px] text-theme-muted">Type or scan a member code</p>
+                    </div>
+                </div>
+                <div className="p-5">
+                    <div className="grid grid-cols-2 gap-1 p-1 rounded-xl border border-theme mb-4 max-w-sm">
+                        <button
+                            onClick={() => { setScannerMode("manual"); setCameraActive(false); }}
+                            className={`py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${scannerMode === "manual" ? "bg-hover-accent text-energy" : "text-theme-muted hover:text-theme"}`}
+                        >
+                            <Keyboard className="h-4 w-4" /> Manual
+                        </button>
+                        <button
+                            onClick={() => { setScannerMode("camera"); setCameraActive(true); }}
+                            className={`py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${scannerMode === "camera" ? "bg-hover-accent text-energy" : "text-theme-muted hover:text-theme"}`}
+                        >
+                            <Camera className="h-4 w-4" /> Camera
+                        </button>
+                    </div>
+
+                    <AnimatePresence mode="wait">
+                        {!result ? (
+                            <motion.div key="scanner" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex gap-5 items-start flex-wrap">
+                                {scannerMode === "manual" ? (
+                                    <form onSubmit={handleManualSubmit} className="space-y-3 w-full max-w-sm">
+                                        <div className="relative">
+                                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-muted" />
+                                            <input
+                                                type="text"
+                                                value={manualCode}
+                                                onChange={(e) => setManualCode(e.target.value.toUpperCase())}
+                                                placeholder="Enter member ID…"
+                                                className="field !pl-10 font-mono tracking-widest"
+                                                autoFocus
+                                            />
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            disabled={scanning || !manualCode.trim()}
+                                            className="btn btn--primary btn--md w-full"
+                                        >
+                                            {scanning ? "Checking…" : "Check in"}
+                                            {!scanning && <ChevronRight className="h-4 w-4" />}
+                                        </button>
+                                    </form>
+                                ) : (
+                                    <div>
+                                        <div
+                                            className="relative overflow-hidden rounded-xl border border-theme-strong bg-bg-solid"
+                                            style={{ aspectRatio: "1/1", maxWidth: "320px", width: "320px" }}
+                                        >
+                                            <div id="qr-reader-main" className="w-full h-full" />
+                                            {cameraActive && !cameraError && (
+                                                <div className="absolute inset-0 pointer-events-none">
+                                                    <div className="absolute top-3 left-3 w-7 h-7 border-t-2 border-l-2 border-energy rounded-tl-lg" />
+                                                    <div className="absolute top-3 right-3 w-7 h-7 border-t-2 border-r-2 border-energy rounded-tr-lg" />
+                                                    <div className="absolute bottom-3 left-3 w-7 h-7 border-b-2 border-l-2 border-energy rounded-bl-lg" />
+                                                    <div className="absolute bottom-3 right-3 w-7 h-7 border-b-2 border-r-2 border-energy rounded-br-lg" />
+                                                    <motion.div
+                                                        className="absolute left-3 right-3 h-0.5 bg-energy shadow-[0_0_12px_var(--color-energy)]"
+                                                        animate={{ top: ["12%", "88%", "12%"] }}
+                                                        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                                                    />
+                                                    <div className="absolute bottom-3 left-0 right-0 text-center">
+                                                        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-energy bg-black/60 px-2.5 py-1 rounded-full">
+                                                            <Scan className="h-3.5 w-3.5" /> {scannerActive ? "Scanning" : "Ready"}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {cameraError && (
+                                            <div className="mt-3 rounded-xl border border-danger/40 bg-danger/10 p-3 text-xs text-danger text-center" style={{ maxWidth: "320px" }}>
+                                                {cameraError}
+                                                <button
+                                                    onClick={() => { setCameraActive(false); setTimeout(() => setCameraActive(true), 100); }}
+                                                    className="btn btn--ghost btn--sm w-full mt-2"
+                                                >
+                                                    Try again
+                                                </button>
+                                            </div>
+                                        )}
+                                        {!cameraActive && !cameraError && (
+                                            <button
+                                                onClick={() => setCameraActive(true)}
+                                                className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 rounded-xl gap-3"
+                                                style={{ width: "320px", aspectRatio: "1/1" }}
+                                            >
+                                                <span className="grid h-12 w-12 place-items-center rounded-xl border border-energy text-energy">
+                                                    <Camera className="h-6 w-6" />
+                                                </span>
+                                                <span className="text-sm font-semibold text-energy">Start camera</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+
+                                {scannerMode === "camera" && (
+                                    <div className="flex-1 min-w-64 space-y-5 p-5 rounded-xl border border-theme bg-bg-raised">
+                                        <div>
+                                            <div className="eyebrow text-theme-muted">Quick lookup</div>
+                                            <p className="text-sm font-semibold mt-1">Type a member ID</p>
+                                            <p className="text-xs text-theme-muted mt-1">Switch to Manual tab if you prefer typing</p>
+                                        </div>
+                                        <form onSubmit={handleManualSubmit} className="space-y-3">
+                                            <div className="relative">
+                                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-muted" />
+                                                <input
+                                                    type="text"
+                                                    value={manualCode}
+                                                    onChange={(e) => setManualCode(e.target.value.toUpperCase())}
+                                                    placeholder="Enter member ID…"
+                                                    className="field !pl-10 font-mono tracking-widest"
+                                                />
+                                            </div>
+                                            <button
+                                                type="submit"
+                                                disabled={scanning || !manualCode.trim()}
+                                                className="btn btn--primary btn--md w-full"
+                                            >
+                                                {scanning ? "Checking…" : "Check in"}
+                                                {!scanning && <ChevronRight className="h-4 w-4" />}
+                                            </button>
+                                        </form>
+                                    </div>
+                                )}
+                            </motion.div>
+                        ) : (
+                            <motion.div key="result" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="max-w-sm">
+                                <div className={`rounded-xl border p-5 text-center ${
+                                    resultTone === "success" ? "border-success/40 bg-success/10" :
+                                    resultTone === "warning" ? "border-warning/40 bg-warning/10" :
+                                    "border-danger/40 bg-danger/10"
+                                }`}>
+                                    <span className={`mx-auto grid h-12 w-12 place-items-center rounded-xl mb-3 ${
+                                        resultTone === "success" ? "bg-success/20 text-success" :
+                                        resultTone === "warning" ? "bg-warning/20 text-warning" :
+                                        "bg-danger/20 text-danger"
+                                    }`}>
+                                        {resultTone === "success" ? <Zap className="h-6 w-6" /> : resultTone === "warning" ? <AlertTriangle className="h-6 w-6" /> : <Activity className="h-6 w-6" />}
+                                    </span>
+                                    {result.member ? (
+                                        <>
+                                            <h3 className="text-xl font-extrabold tracking-tight">
+                                                {result.member.firstName} {result.member.lastName}
+                                            </h3>
+                                            <p className={`text-xs font-semibold mt-1 ${
+                                                resultTone === "success" ? "text-success" : "text-warning"
+                                            }`}>
+                                                {result.status === "checked_in" ? "Checked in" : "Already here"}
+                                            </p>
+                                            {result.membership && (
+                                                <div className="mt-3 rounded-lg border border-theme bg-bg-raised p-3 text-left">
+                                                    <div className="eyebrow">Plan</div>
+                                                    <div className="font-bold text-sm mt-1">{result.membership.planName}</div>
+                                                    <div className="text-[11px] text-theme-muted mt-1 font-mono">Ends {formatDate(result.membership.endDate)}</div>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <h3 className="text-xl font-extrabold tracking-tight text-danger">Not found</h3>
+                                            {result.errorDetails ? (
+                                                <DetailedErrorPanel error={result.errorDetails} className="mt-3 text-left" />
+                                            ) : (
+                                                <p className="text-sm text-theme-secondary mt-1">{result.message}</p>
+                                            )}
+                                        </>
+                                    )}
+                                    <button onClick={resetResult} className="btn btn--ghost btn--md w-full mt-4">
+                                        Next check-in
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </motion.div>
+
             {/* KPIs */}
             <section className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 {kpis.map((k, i) => (
@@ -222,162 +408,6 @@ export default function GymDashboard() {
 
                 {/* Right column */}
                 <div className="flex flex-col gap-4">
-                    {/* Check-in */}
-                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="card overflow-hidden">
-                        <div className="px-5 py-4 border-b border-theme flex items-center gap-2.5">
-                            <span className="grid h-9 w-9 place-items-center rounded-xl bg-energy/12 text-energy">
-                                <Zap className="h-5 w-5" />
-                            </span>
-                            <div>
-                                <h3 className="text-sm font-bold">Check-in</h3>
-                                <p className="text-[11px] text-theme-muted">Type or scan a member code</p>
-                            </div>
-                        </div>
-                        <div className="p-5">
-                            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl border border-theme mb-4">
-                                <button
-                                    onClick={() => { setScannerMode("manual"); setCameraActive(false); }}
-                                    className={`py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${scannerMode === "manual" ? "bg-hover-accent text-energy" : "text-theme-muted hover:text-theme"}`}
-                                >
-                                    <Keyboard className="h-4 w-4" /> Manual
-                                </button>
-                                <button
-                                    onClick={() => { setScannerMode("camera"); setCameraActive(true); }}
-                                    className={`py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${scannerMode === "camera" ? "bg-hover-accent text-energy" : "text-theme-muted hover:text-theme"}`}
-                                >
-                                    <Camera className="h-4 w-4" /> Camera
-                                </button>
-                            </div>
-
-                            <AnimatePresence mode="wait">
-                                {!result ? (
-                                    <motion.div key="scanner" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                                        {scannerMode === "manual" ? (
-                                            <form onSubmit={handleManualSubmit} className="space-y-3">
-                                                <div className="relative">
-                                                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-muted" />
-                                                    <input
-                                                        type="text"
-                                                        value={manualCode}
-                                                        onChange={(e) => setManualCode(e.target.value.toUpperCase())}
-                                                        placeholder="Enter member ID…"
-                                                        className="field !pl-10 font-mono tracking-widest"
-                                                        autoFocus
-                                                    />
-                                                </div>
-                                                <button
-                                                    type="submit"
-                                                    disabled={scanning || !manualCode.trim()}
-                                                    className="btn btn--primary btn--md w-full"
-                                                >
-                                                    {scanning ? "Checking…" : "Check in"}
-                                                    {!scanning && <ChevronRight className="h-4 w-4" />}
-                                                </button>
-                                            </form>
-                                        ) : (
-                                            <div>
-                                                <div
-                                                    className="relative overflow-hidden rounded-xl border border-theme-strong bg-bg-solid mx-auto"
-                                                    style={{ aspectRatio: "1/1", maxWidth: "320px", width: "100%" }}
-                                                >
-                                                    <div id="qr-reader-main" className="w-full h-full" />
-                                                    {cameraActive && !cameraError && (
-                                                        <div className="absolute inset-0 pointer-events-none">
-                                                            <div className="absolute top-3 left-3 w-7 h-7 border-t-2 border-l-2 border-energy rounded-tl-lg" />
-                                                            <div className="absolute top-3 right-3 w-7 h-7 border-t-2 border-r-2 border-energy rounded-tr-lg" />
-                                                            <div className="absolute bottom-3 left-3 w-7 h-7 border-b-2 border-l-2 border-energy rounded-bl-lg" />
-                                                            <div className="absolute bottom-3 right-3 w-7 h-7 border-b-2 border-r-2 border-energy rounded-br-lg" />
-                                                            <motion.div
-                                                                className="absolute left-3 right-3 h-0.5 bg-energy shadow-[0_0_12px_var(--color-energy)]"
-                                                                animate={{ top: ["12%", "88%", "12%"] }}
-                                                                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                                                            />
-                                                            <div className="absolute bottom-3 left-0 right-0 text-center">
-                                                                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-energy bg-black/60 px-2.5 py-1 rounded-full">
-                                                                    <Scan className="h-3.5 w-3.5" /> {scannerActive ? "Scanning" : "Ready"}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                {cameraError && (
-                                                    <div className="mt-3 rounded-xl border border-danger/40 bg-danger/10 p-3 text-xs text-danger text-center">
-                                                        {cameraError}
-                                                        <button
-                                                            onClick={() => { setCameraActive(false); setTimeout(() => setCameraActive(true), 100); }}
-                                                            className="btn btn--ghost btn--sm w-full mt-2"
-                                                        >
-                                                            Try again
-                                                        </button>
-                                                    </div>
-                                                )}
-                                                {!cameraActive && !cameraError && (
-                                                    <button
-                                                        onClick={() => setCameraActive(true)}
-                                                        className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 rounded-xl gap-3 mt-3"
-                                                        style={{ position: "relative", aspectRatio: "1/1", maxWidth: "320px", width: "100%", margin: "0 auto" }}
-                                                    >
-                                                        <span className="grid h-12 w-12 place-items-center rounded-xl border border-energy text-energy">
-                                                            <Camera className="h-6 w-6" />
-                                                        </span>
-                                                        <span className="text-sm font-semibold text-energy">Start camera</span>
-                                                    </button>
-                                                )}
-                                            </div>
-                                        )}
-                                    </motion.div>
-                                ) : (
-                                    <motion.div key="result" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}>
-                                        <div className={`rounded-xl border p-5 text-center ${
-                                            resultTone === "success" ? "border-success/40 bg-success/10" :
-                                            resultTone === "warning" ? "border-warning/40 bg-warning/10" :
-                                            "border-danger/40 bg-danger/10"
-                                        }`}>
-                                            <span className={`mx-auto grid h-12 w-12 place-items-center rounded-xl mb-3 ${
-                                                resultTone === "success" ? "bg-success/20 text-success" :
-                                                resultTone === "warning" ? "bg-warning/20 text-warning" :
-                                                "bg-danger/20 text-danger"
-                                            }`}>
-                                                {resultTone === "success" ? <Zap className="h-6 w-6" /> : resultTone === "warning" ? <AlertTriangle className="h-6 w-6" /> : <Activity className="h-6 w-6" />}
-                                            </span>
-                                            {result.member ? (
-                                                <>
-                                                    <h3 className="text-xl font-extrabold tracking-tight">
-                                                        {result.member.firstName} {result.member.lastName}
-                                                    </h3>
-                                                    <p className={`text-xs font-semibold mt-1 ${
-                                                        resultTone === "success" ? "text-success" : "text-warning"
-                                                    }`}>
-                                                        {result.status === "checked_in" ? "Checked in" : "Already here"}
-                                                    </p>
-                                                    {result.membership && (
-                                                        <div className="mt-3 rounded-lg border border-theme bg-bg-raised p-3 text-left">
-                                                            <div className="eyebrow">Plan</div>
-                                                            <div className="font-bold text-sm mt-1">{result.membership.planName}</div>
-                                                            <div className="text-[11px] text-theme-muted mt-1 font-mono">Ends {formatDate(result.membership.endDate)}</div>
-                                                        </div>
-                                                    )}
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <h3 className="text-xl font-extrabold tracking-tight text-danger">Not found</h3>
-                                                    {result.errorDetails ? (
-                                                        <DetailedErrorPanel error={result.errorDetails} className="mt-3 text-left" />
-                                                    ) : (
-                                                        <p className="text-sm text-theme-secondary mt-1">{result.message}</p>
-                                                    )}
-                                                </>
-                                            )}
-                                            <button onClick={resetResult} className="btn btn--ghost btn--md w-full mt-4">
-                                                Next check-in
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-                    </motion.div>
-
                     {/* Renewal queue */}
                     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card">
                         <div className="flex items-center justify-between px-5 py-4 border-b border-theme">
