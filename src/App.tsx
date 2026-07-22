@@ -5,7 +5,7 @@ import { AppLayout } from "./components/layout/AppLayout";
 import { AdminLayout } from "./components/layout/AdminLayout";
 import { useAuth } from "./lib/useAuth";
 
-const Landing = lazy(() => import("./pages/landing/Landing"));
+const Landing = lazy(() => import("./pages/landing/LandingA"));
 const UnifiedAuth = lazy(() => import("./pages/auth/UnifiedAuth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Members = lazy(() => import("./pages/Members"));
@@ -32,17 +32,15 @@ function LoadingScreen() {
                 className="flex flex-col items-center gap-4"
             >
                 <div className="relative">
-                    <div className="h-16 w-16 border-4 border-accent border-t-transparent rounded-full animate-spin" />
-                    <div className="absolute inset-0 h-16 w-16 border-4 border-accent/20 rounded-full animate-pulse" />
+                    <div className="h-12 w-12 rounded-full border-2 border-accent/20 border-t-accent-light animate-spin" />
                 </div>
                 <motion.span
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="text-sm font-medium"
-                    style={{ color: "var(--text-muted)" }}
+                    className="eyebrow"
                 >
-                    Loading...
+                    Loading…
                 </motion.span>
             </motion.div>
         </div>

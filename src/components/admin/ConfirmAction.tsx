@@ -20,9 +20,9 @@ export function ConfirmAction({
     const [open, setOpen] = useState(false);
 
     const colors = {
-        danger: { bg: "bg-red-500/10", border: "border-red-500", text: "text-red-500", btn: "bg-red-500 hover:bg-red-600 text-white" },
-        warning: { bg: "bg-amber-500/10", border: "border-amber-500", text: "text-amber-500", btn: "bg-amber-500 hover:bg-amber-600 text-white" },
-        default: { bg: "bg-theme-raised", border: "border-theme-strong", text: "text-theme", btn: "bg-[#ccff00] hover:bg-[#b3e600] text-[#000000] font-black" },
+        danger: { text: "var(--color-danger)", btn: "btn--primary", accent: "rgba(248,113,113,0.16)", border: "rgba(248,113,113,0.4)" },
+        warning: { text: "var(--color-warning)", btn: "btn--primary", accent: "rgba(251,191,36,0.16)", border: "rgba(251,191,36,0.4)" },
+        default: { text: "var(--color-accent-light)", btn: "btn--primary", accent: "rgba(163,230,53,0.16)", border: "rgba(163,230,53,0.40)" },
     };
 
     const c = colors[variant];
@@ -37,39 +37,52 @@ export function ConfirmAction({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4"
                         onClick={() => setOpen(false)}
                     >
                         <motion.div
-                            initial={{ scale: 0.95, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.95, opacity: 0 }}
-                            className={`${c.bg} border-4 ${c.border} shadow-[8px_8px_0px_0px_var(--border-strong)] max-w-md w-full p-6`}
+                            initial={{ scale: 0.94, opacity: 0, y: 12 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.94, opacity: 0, y: 12 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 26 }}
+                            className="glass-strong rounded-3xl max-w-md w-full p-6"
+                            style={{ boxShadow: `0 30px 80px -20px rgba(0,0,0,0.6), 0 0 0 1px ${c.border}` }}
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center justify-between mb-5">
                                 <div className="flex items-center gap-3">
-                                    <AlertTriangle className={`h-6 w-6 ${c.text}`} />
-                                    <h3 className={`font-black uppercase tracking-widest text-lg font-['Syncopate'] ${c.text}`}>{title}</h3>
+                                    <span
+                                        className="grid h-10 w-10 place-items-center rounded-xl"
+                                        style={{ background: c.accent, color: c.text }}
+                                    >
+                                        <AlertTriangle className="h-5 w-5" />
+                                    </span>
+                                    <h3 className="font-extrabold text-lg tracking-tight text-theme">{title}</h3>
                                 </div>
-                                <button onClick={() => setOpen(false)} className="p-1 border-2 border-theme hover:bg-theme transition-colors">
+                                <button
+                                    onClick={() => setOpen(false)}
+                                    className="grid h-8 w-8 place-items-center rounded-lg border border-theme hover-theme transition-colors text-theme-secondary"
+                                >
                                     <X className="h-4 w-4" />
                                 </button>
                             </div>
 
-                            <p className="text-theme font-medium mb-2">{message}</p>
+                            <p className="text-theme-secondary text-sm leading-relaxed mb-3">{message}</p>
                             {children}
 
                             <div className="flex gap-3 mt-6">
                                 <button
-                                    onClick={() => { onConfirm(); setOpen(false); }}
-                                    className={`flex-1 px-4 py-3 font-black uppercase tracking-widest text-sm ${c.btn} border-2 ${c.border} shadow-[4px_4px_0px_0px_var(--border-strong)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all`}
+                                    onClick={() => {
+                                        onConfirm();
+                                        setOpen(false);
+                                    }}
+                                    className={`btn ${c.btn} btn--md flex-1`}
                                 >
                                     Confirm
                                 </button>
                                 <button
                                     onClick={() => setOpen(false)}
-                                    className="flex-1 px-4 py-3 font-black uppercase tracking-widest text-sm border-2 border-theme hover:bg-theme transition-colors text-theme"
+                                    className="btn btn--ghost btn--md flex-1"
                                 >
                                     Cancel
                                 </button>

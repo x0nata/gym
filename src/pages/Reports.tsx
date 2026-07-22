@@ -6,84 +6,82 @@ import { useAuth } from "../lib/useAuth";
 import { formatDate } from "../lib/utils";
 
 export default function Reports() {
-  const { user } = useAuth();
-  const sessionToken = user?.sessionToken;
-  const stats = useQuery(api.members.stats, sessionToken ? { sessionToken } : "skip");
-  const memberships = useQuery(api.memberships.listAll, sessionToken ? { sessionToken } : "skip");
+    const { user } = useAuth();
+    const sessionToken = user?.sessionToken;
+    const stats = useQuery(api.members.stats, sessionToken ? { sessionToken } : "skip");
+    const memberships = useQuery(api.memberships.listAll, sessionToken ? { sessionToken } : "skip");
 
-  if (!stats || !memberships) {
+    if (!stats || !memberships) {
+        return (
+            <div className="flex h-[60vh] items-center justify-center">
+                <div className="h-10 w-10 rounded-full border-2 border-accent/30 border-t-accent-light animate-spin" />
+            </div>
+        );
+    }
+
+    const totalRevenue = memberships.reduce((sum, m) => sum + (m.amountPaid || 0), 0);
+
+    const tiles = [
+        { label: "Revenue", value: `ETB ${totalRevenue.toLocaleString()}`, icon: DollarSign, accent: "var(--color-energy)" },
+        { label: "Total members", value: stats.totalMembers, icon: Users, accent: "var(--color-info)" },
+        { label: "Active plans", value: stats.activeMemberships, icon: Activity, accent: "var(--color-success)" },
+        { label: "Expiring soon", value: stats.expiringSoon, icon: CalendarDays, accent: "var(--color-warning)" },
+    ];
+
     return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="h-12 w-12 border-4 border-theme-strong border-t-transparent rounded-full animate-spin" />
-      </div>
+        <div className="space-y-5">
+            <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="card overflow-hidden">
+                <div className="p-5 md:p-6 border-b border-theme flex items-center gap-3.5">
+                    <span className="grid h-12 w-12 place-items-center rounded-2xl bg-accent/15 text-accent-light">
+                        <ClipboardList className="h-6 w-6" />
+                    </span>
+                    <div>
+                        <span className="eyebrow">Financials</span>
+                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mt-1">Reports</h1>
+                    </div>
+                </div>
+            </motion.section>
+
+            <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                {tiles.map((item, idx) => (
+                    <motion.div
+                        key={item.label}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.05 * idx }}
+                        className="stat-tile lift p-4 md:p-5"
+                    >
+                        <item.icon className="h-5 w-5 md:h-6 md:w-6" style={{ color: item.accent }} />
+                        <p className="text-xl md:text-2xl font-extrabold tracking-tight mt-3 leading-none">{item.value}</p>
+                        <p className="eyebrow mt-2">{item.label}</p>
+                    </motion.div>
+                ))}
+            </section>
+
+            <section className="card overflow-hidden">
+                <div className="p-4 border-b border-theme flex items-center gap-2.5">
+                    <FileText className="h-4 w-4 text-accent-light" />
+                    <p className="font-bold tracking-tight">Recent payments</p>
+                </div>
+                {memberships.length === 0 ? (
+                    <div className="p-10 text-center eyebrow">No payments yet</div>
+                ) : (
+                    <div className="divide-y divide-[var(--border)]">
+                        {memberships.slice(0, 12).map((m) => (
+                            <div key={m._id} className="p-4 md:p-5 flex items-center justify-between gap-4 hover:bg-hover transition-colors">
+                                <div>
+                                    <p className="font-semibold">{m.member?.firstName} {m.member?.lastName}</p>
+                                    <p className="text-xs text-theme-muted mt-0.5">{m.planName}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-bold text-energy">ETB {m.amountPaid}</p>
+                                    <p className="text-xs text-theme-muted mt-0.5">{formatDate(m.startDate)}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
+        </div>
     );
-  }
-
-  const totalRevenue = memberships.reduce((sum, m) => sum + (m.amountPaid || 0), 0);
-
-  return (
-    <div className="space-y-6 font-['Outfit']">
-      <motion.section
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)]"
-      >
-        <div className="p-6 border-b-4 border-theme-strong bg-theme-sidebar flex items-center gap-4">
-          <div className="h-12 w-12 border-2 border-theme-strong bg-white text-[#ccff00] flex items-center justify-center">
-            <ClipboardList className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-700">Reports</p>
-            <h1 className="text-2xl md:text-3xl font-black uppercase font-['Syncopate'] text-theme">Reports</h1>
-          </div>
-        </div>
-      </motion.section>
-
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        {[
-          { label: "Revenue", value: `ETB ${totalRevenue.toLocaleString()}`, icon: DollarSign },
-          { label: "Total members", value: stats.totalMembers, icon: Users },
-          { label: "Active plans", value: stats.activeMemberships, icon: Activity },
-          { label: "Expiring soon", value: stats.expiringSoon, icon: CalendarDays },
-        ].map((item, idx) => (
-          <motion.div
-            key={item.label}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.04 * idx }}
-            className="border-4 border-theme-strong bg-theme-raised p-3 md:p-4 shadow-[4px_4px_0px_0px_var(--border-strong)]"
-          >
-            <item.icon className="h-6 w-6 md:h-8 md:w-8 text-theme mb-2 md:mb-3" />
-            <p className="text-xl md:text-2xl font-black font-['Syncopate'] text-theme">{item.value}</p>
-            <p className="mt-1 text-[9px] md:text-[10px] font-black uppercase tracking-[0.18em] text-theme-muted">{item.label}</p>
-          </motion.div>
-        ))}
-      </section>
-
-      <section className="border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)] overflow-hidden">
-        <div className="p-4 border-b-4 border-theme-strong bg-white text-black flex items-center gap-2">
-          <FileText className="h-4 w-4 text-[#ccff00]" />
-          <p className="font-black uppercase tracking-widest text-sm font-['Syncopate']">Recent payments</p>
-        </div>
-        {memberships.length === 0 ? (
-          <div className="p-10 text-center text-theme-muted font-black uppercase tracking-wider">No payments yet</div>
-        ) : (
-          <div className="divide-y-2 divide-theme-strong">
-            {memberships.slice(0, 12).map((m) => (
-              <div key={m._id} className="p-4 md:p-5 flex items-center justify-between gap-4">
-                <div>
-                  <p className="font-black uppercase text-sm text-theme">{m.member?.firstName} {m.member?.lastName}</p>
-                  <p className="text-xs font-bold uppercase text-theme-muted tracking-wider">{m.planName}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-black uppercase text-theme">ETB {m.amountPaid}</p>
-                  <p className="text-xs font-bold uppercase text-theme-muted tracking-wider">{formatDate(m.startDate)}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-    </div>
-  );
 }

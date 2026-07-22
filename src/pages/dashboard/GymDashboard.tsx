@@ -5,18 +5,16 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Users,
-    CheckCircle2,
-    XCircle,
+    Activity,
+    TrendingUp,
     AlertTriangle,
     Clock,
     Camera,
     Keyboard,
-    Zap,
-    Activity,
-    TrendingUp,
+    Scan,
     ChevronRight,
     Search,
-    Scan
+    Zap,
 } from "lucide-react";
 import { formatDateTime, formatTimeAgo, formatDate } from "../../lib/utils";
 import type { Doc } from "../../../convex/_generated/dataModel";
@@ -55,15 +53,11 @@ export default function GymDashboard() {
             if (!sessionToken) return;
             setScanning(true);
             setResult(null);
-
             try {
                 const res = await checkIn({ qrCode, sessionToken: sessionToken as string });
                 setResult(res as ScanResult);
             } catch (err: unknown) {
-                const details = toDisplayError(err, {
-                    title: "Check-in failed",
-                    fallbackMessage: "Scan failed. Try again.",
-                });
+                const details = toDisplayError(err, { title: "Check-in failed", fallbackMessage: "Scan failed. Try again." });
                 setResult({ status: "error", message: details.message, errorDetails: details });
             } finally {
                 setScanning(false);
@@ -80,9 +74,7 @@ export default function GymDashboard() {
 
     const handleManualSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (manualCode.trim()) {
-            handleScan(manualCode.trim());
-        }
+        if (manualCode.trim()) handleScan(manualCode.trim());
     };
 
     const resetResult = () => {
@@ -93,287 +85,102 @@ export default function GymDashboard() {
     if (!stats) {
         return (
             <div className="flex h-[60vh] items-center justify-center">
-                <Zap className="h-10 w-10 text-[#ccff00] animate-pulse fill-black stroke-black stroke-2" />
+                <div className="h-10 w-10 rounded-full border-2 border-energy/25 border-t-energy animate-spin" />
             </div>
         );
     }
 
+    const kpis = [
+        { label: "All members", value: stats.totalMembers, delta: "this week", icon: Users, tone: "neutral" as const },
+        { label: "Visits today", value: stats.todayCheckIns, delta: "vs avg", icon: Activity, tone: "teal" as const },
+        { label: "Active plans", value: stats.activeMemberships, delta: "retention", icon: TrendingUp, tone: "neutral" as const },
+        { label: "Ending ≤14d", value: stats.expiringSoon, delta: "renew", icon: AlertTriangle, tone: "warn" as const },
+    ];
+
+    // Simple hourly distribution of today's check-ins (0-23) for the mini bars
+    const hourCounts = new Array(24).fill(0);
+    (todayCheckIns ?? []).forEach((ci) => {
+        const h = new Date(ci.timestamp).getHours();
+        if (h >= 0 && h < 24) hourCounts[h]++;
+    });
+    const maxHour = Math.max(...hourCounts, 1);
+    const firstActiveHour = hourCounts.findIndex((c) => c > 0);
+    const barStart = firstActiveHour === -1 ? 6 : Math.max(0, firstActiveHour - 1);
+    const barEnd = 22;
+    const hourBars = hourCounts.slice(barStart, barEnd + 1);
+    const labels = hourBars.map((_, idx) => `${(barStart + idx) % 24}`);
+
+    const resultTone =
+        result?.status === "checked_in" ? "success" : result?.status === "already_checked_in" ? "warning" : "danger";
+
     return (
-        <div className="space-y-6 relative font-['Outfit']">
-            <div className="flex flex-col lg:flex-row gap-6">
-                
-                {/* Access Portal Side */}
-                <div className="w-full lg:w-[420px] flex flex-col gap-4 lg:gap-6 shrink-0">
-                    <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
+        <div className="max-w-7xl mx-auto space-y-5">
+            {/* Header */}
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-1">
+                <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Front desk · today</h1>
+                <p className="text-theme-secondary text-sm">
+                    {stats.todayCheckIns} visits so far ·{" "}
+                    <span className="text-energy font-semibold">{stats.expiringSoon} plans</span> enter the renewal window.
+                </p>
+            </motion.div>
+
+            {/* KPIs */}
+            <section className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                {kpis.map((k, i) => (
+                    <motion.div
+                        key={k.label}
+                        initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)] relative overflow-hidden"
+                        transition={{ delay: 0.04 * i }}
+                        className="stat-tile p-5"
                     >
-                        <div className="p-4 md:p-6 border-b-4 border-theme-strong bg-theme-sidebar">
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 md:h-12 md:w-12 border-2 border-theme-strong bg-theme-sidebar flex items-center justify-center">
-                                    <Zap className="h-5 w-5 md:h-6 md:w-6 text-green-500 fill-current" />
-                                </div>
-                                <div>
-                                    <h2 className="font-black uppercase tracking-widest text-lg md:text-xl font-['Syncopate'] text-theme">Check In</h2>
-                                    <p className="text-[10px] md:text-xs font-bold text-slate-700 uppercase tracking-widest mt-1">Check people in</p>
-                                </div>
-                            </div>
+                        <div className="flex items-start justify-between">
+                            <span className="text-xs font-medium text-theme-secondary">{k.label}</span>
+                            <k.icon className={`h-4 w-4 ${k.tone === "teal" ? "text-energy" : k.tone === "warn" ? "text-warning" : "text-theme-muted"}`} />
                         </div>
-
-                        <div className="p-4 md:p-6">
-                            <div className="flex gap-2 mb-4 md:mb-6 border-2 border-theme-strong p-1 bg-theme-sidebar">
-                                <button
-                                    onClick={() => { setScannerMode("manual"); setCameraActive(false); }}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-3 text-xs font-black uppercase tracking-widest transition-all ${
-                                        scannerMode === "manual"
-                                            ? "bg-black text-white border-2 border-theme-strong shadow-[2px_2px_0px_0px_rgba(204,255,0,1)] translate-x-[-2px] translate-y-[-2px]"
-                                            : "text-theme-muted hover:text-theme hover:bg-theme-sidebar border-2 border-transparent"
-                                    }`}
-                                >
-                                    <Keyboard className="h-4 w-4" />
-                                    Type Code
-                                </button>
-                                <button
-                                    onClick={() => { setScannerMode("camera"); setCameraActive(true); }}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-3 text-xs font-black uppercase tracking-widest transition-all ${
-                                        scannerMode === "camera"
-                                            ? "bg-[#ccff00] text-theme border-2 border-theme-strong shadow-[4px_4px_0px_0px_var(--border-strong)] translate-x-[-2px] translate-y-[-2px]"
-                                            : "text-theme-muted hover:text-theme hover:bg-theme-sidebar border-2 border-transparent"
-                                    }`}
-                                >
-                                    <Camera className="h-4 w-4" />
-                                    Scan QR
-                                </button>
-                            </div>
-
-                            <AnimatePresence mode="wait">
-                                {!result ? (
-                                    <motion.div key="scanner" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}>
-                                        {scannerMode === "manual" ? (
-                                            <form onSubmit={handleManualSubmit} className="space-y-4">
-                                                <div className="relative">
-                                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                        <Search className="h-5 w-5 text-theme" />
-                                                    </div>
-                                                    <input
-                                                        type="text"
-                                                        value={manualCode}
-                                                        onChange={(e) => setManualCode(e.target.value.toUpperCase())}
-                                                        placeholder="Enter ID..."
-                                                        className="w-full h-14 pl-12 pr-4 bg-theme-sidebar border-2 border-theme-strong text-theme font-black font-mono tracking-widest focus:outline-none focus:bg-[#ccff00]/10 focus:shadow-[4px_4px_0px_0px_var(--border-strong)] transition-all placeholder:text-theme-muted"
-                                                        autoFocus
-                                                    />
-                                                </div>
-                                                <button
-                                                    type="submit"
-                                                    disabled={scanning || !manualCode.trim()}
-                                                    className="w-full h-14 bg-black text-white font-black uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 border-2 border-theme-strong hover:bg-[#ccff00] hover:text-theme transition-colors shadow-[6px_6px_0px_0px_rgba(204,255,0,1)] hover:translate-x-[6px] hover:translate-y-[6px] hover:shadow-[0px_0px_0px_0px_rgba(204,255,0,1)] group"
-                                                >
-                                                    {scanning ? (
-                                                        <>
-                                                            <div className="h-5 w-5 border-2 border-[#ccff00]/30 border-t-[#ccff00] rounded-full animate-spin" />
-                                                            Checking...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            Check In
-                                                            <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                                                        </>
-                                                    )}
-                                                </button>
-                                            </form>
-                                        ) : (
-                                            <div className="relative">
-                                                <div
-                                                    className="relative overflow-hidden border-4 border-theme-strong bg-theme-sidebar"
-                                                    style={{ aspectRatio: "1/1", maxWidth: "400px", width: "100%", margin: "0 auto" }}
-                                                >
-                                                    <div id="qr-reader-main" className="w-full h-full" />
-                                                    {cameraActive && !cameraError && (
-                                                        <div className="absolute inset-0 pointer-events-none">
-                                                            <div className="absolute top-3 left-3 w-7 h-7 border-t-4 border-l-4 border-[#ccff00]" />
-                                                            <div className="absolute top-3 right-3 w-7 h-7 border-t-4 border-r-4 border-[#ccff00]" />
-                                                            <div className="absolute bottom-3 left-3 w-7 h-7 border-b-4 border-l-4 border-[#ccff00]" />
-                                                            <div className="absolute bottom-3 right-3 w-7 h-7 border-b-4 border-r-4 border-[#ccff00]" />
-                                                            <motion.div
-                                                                className="absolute left-3 right-3 h-0.5 bg-[#ccff00] shadow-[0_0_8px_#ccff00]"
-                                                                animate={{ top: ["12%", "88%", "12%"] }}
-                                                                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                                                            />
-                                                            <div className="absolute bottom-4 left-0 right-0 text-center">
-                                                                <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#ccff00] bg-black/70 px-2.5 py-1">
-                                                                    <Scan className="h-3.5 w-3.5" />
-                                                                    {scannerActive ? "Scanning" : "Ready"}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                {!cameraActive && !cameraError && (
-                                                    <button
-                                                        onClick={() => setCameraActive(true)}
-                                                        className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80 gap-4 group"
-                                                    >
-                                                        <div className="h-16 w-16 border-2 border-[#ccff00] bg-black flex items-center justify-center text-[#ccff00] group-hover:scale-110 transition-transform">
-                                                            <Camera className="h-8 w-8" />
-                                                        </div>
-                                                        <span className="text-sm font-black uppercase tracking-widest text-[#ccff00]">Start camera</span>
-                                                    </button>
-                                                )}
-                                                {cameraError && (
-                                                    <div className="p-3 mt-3 border-2 border-red-500 bg-red-500/10 text-red-600 text-xs font-bold uppercase tracking-wider text-center">
-                                                        {cameraError}
-                                                    </div>
-                                                )}
-                                                {cameraError && (
-                                                    <button
-                                                        onClick={() => {
-                                                            setCameraActive(false);
-                                                            setTimeout(() => setCameraActive(true), 100);
-                                                        }}
-                                                        className="w-full py-2 mt-2 border-2 border-theme-strong bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-gray-900 transition-colors"
-                                                    >
-                                                        Try again
-                                                    </button>
-                                                )}
-                                            </div>
-                                        )}
-                                    </motion.div>
-                                ) : (
-                                    <motion.div key="result" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}>
-                                        <div className={`p-6 border-4 shadow-[4px_4px_0px_0px_var(--border-strong)] ${
-                                            result.status === "checked_in" ? "bg-emerald-50 border-emerald-500" :
-                                            result.status === "already_checked_in" ? "bg-amber-50 border-amber-500" : 
-                                            "bg-red-50 border-red-500"
-                                        }`}>
-                                            <div className="text-center">
-                                                <div className={`mx-auto h-16 w-16 border-4 flex items-center justify-center mb-4 ${
-                                                    result.status === "checked_in" ? "bg-emerald-500 border-theme-strong text-white" :
-                                                    result.status === "already_checked_in" ? "bg-amber-500 border-theme-strong text-theme" : 
-                                                    "bg-red-500 border-theme-strong text-white"
-                                                }`}>
-                                                    {result.status === "checked_in" && <CheckCircle2 className="h-8 w-8" />}
-                                                    {result.status === "already_checked_in" && <AlertTriangle className="h-8 w-8" />}
-                                                    {result.status === "error" && <XCircle className="h-8 w-8" />}
-                                                </div>
-
-                                                {result.member ? (
-                                                    <>
-                                                        <h3 className="text-2xl font-black uppercase font-['Syncopate'] text-theme mb-1">
-                                                            {result.member.firstName} {result.member.lastName}
-                                                        </h3>
-                                                        <p className={`text-sm font-black tracking-widest uppercase mb-4 ${
-                                                            result.status === "checked_in" ? "text-emerald-600" : "text-amber-600"
-                                                        }`}>
-                                                            {result.status === "checked_in" ? "Checked In" : "Already Here"}
-                                                        </p>
-                                                        {result.membership && (
-                                                            <div className="border-2 border-theme-strong bg-theme-raised p-4 text-sm text-left">
-                                                                <div className="text-[10px] font-black text-theme-muted uppercase tracking-widest mb-1">Plan</div>
-                                                                <div className="font-black text-theme uppercase">{result.membership.planName}</div>
-                                                                <div className="text-[10px] font-bold text-slate-600 uppercase mt-1">Ends: {formatDate(result.membership.endDate)}</div>
-                                                            </div>
-                                                        )}
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <h3 className="text-2xl font-black uppercase font-['Syncopate'] text-red-600 mb-1">
-                                                            Not Found
-                                                        </h3>
-                                                        {result.errorDetails ? (
-                                                            <DetailedErrorPanel error={result.errorDetails} className="mt-2 text-left" />
-                                                        ) : (
-                                                            <p className="text-sm font-bold text-slate-700">{result.message}</p>
-                                                        )}
-                                                    </>
-                                                )}
-
-                                                <button
-                                                    onClick={resetResult}
-                                                    className="mt-6 w-full py-4 font-black uppercase tracking-widest border-2 border-theme-strong bg-black text-white hover:bg-transparent hover:text-theme transition-colors"
-                                                >
-                                                    Next
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
+                        <div className="mt-3 text-3xl font-extrabold tracking-tight tabular-nums leading-none">{k.value}</div>
+                        <div className="mt-3 text-[11px] font-mono text-theme-muted">{k.delta}</div>
                     </motion.div>
+                ))}
+            </section>
 
-                    <div className="grid grid-cols-2 gap-3 md:gap-4">
-                        {[
-                            { label: "All members", value: stats.totalMembers, icon: Users, hover: "hover:bg-blue-400 hover:text-theme" },
-                            { label: "Visits today", value: stats.todayCheckIns, icon: Activity, hover: "hover:bg-[#ccff00] hover:text-theme" },
-                            { label: "Active plans", value: stats.activeMemberships, icon: TrendingUp, hover: "hover:bg-emerald-400 hover:text-theme" },
-                            { label: "Ending soon", value: stats.expiringSoon, icon: AlertTriangle, hover: "hover:bg-amber-400 hover:text-theme" },
-                        ].map((stat, i) => (
-                            <motion.div
-                                key={stat.label}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.1 + i * 0.05 }}
-                                className={`border-4 border-theme-strong bg-theme-raised p-3 md:p-5 text-center shadow-[4px_4px_0px_0px_var(--border-strong)] group transition-colors cursor-default ${stat.hover}`}
-                            >
-                                <stat.icon className="h-6 w-6 md:h-8 md:w-8 text-theme mx-auto mb-2 md:mb-3" />
-                                <div className="text-2xl md:text-4xl font-black font-['Syncopate'] text-theme mb-1">
-                                    {stat.value}
-                                </div>
-                                <div className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-theme-muted group-hover:text-theme transition-colors">
-                                    {stat.label}
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Right Side Logs */}
-                <div className="flex-1 flex flex-col gap-6">
-                    <motion.div 
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="flex-1 min-h-[260px] md:min-h-[320px] border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)] flex flex-col relative"
-                    >
-                        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(transparent_1px,transparent_1px)] [background-size:16px_16px] opacity-50 z-0 pointer-events-none" />
-                        <div className="p-4 md:p-5 border-b-4 border-theme-strong bg-theme-sidebar flex items-center justify-between relative z-10">
-                            <h3 className="font-black uppercase tracking-widest flex items-center gap-2 md:gap-3 text-sm md:text-base text-black">
-                                <span className="h-2 w-2 -full bg-[#ccff00] animate-pulse" />
-                                Recent visits
-                            </h3>
-                            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest px-2 md:px-3 py-1 bg-white text-green-500 border-2 border-theme-strong">
-                                {todayCheckIns?.length ?? 0} Done
-                            </span>
+            <div className="grid lg:grid-cols-[1.4fr_1fr] gap-4">
+                {/* Left column */}
+                <div className="flex flex-col gap-4">
+                    {/* Recent visits */}
+                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="card">
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-theme">
+                            <h3 className="text-sm font-bold">Recent visits</h3>
+                            <span className="pill pill--energy">{todayCheckIns?.length ?? 0} today</span>
                         </div>
-                        <div className="flex-1 overflow-auto relative z-10 bg-theme-raised/80">
+                        <div className="p-2">
                             {!todayCheckIns || todayCheckIns.length === 0 ? (
-                                <div className="h-full flex flex-col items-center justify-center p-8 text-theme-muted">
-                                    <Activity className="h-12 w-12 mb-4 opacity-30" />
-                                    <p className="text-xs font-black uppercase tracking-widest">No visits yet</p>
+                                <div className="py-12 flex flex-col items-center justify-center text-theme-muted gap-2">
+                                    <Activity className="h-8 w-8 opacity-40" />
+                                    <p className="eyebrow">No visits yet</p>
                                 </div>
                             ) : (
-                                <div className="divide-y-2 divide-black">
-                                    {todayCheckIns.slice(0, 8).map((ci) => (
+                                <div className="flex flex-col">
+                                    {todayCheckIns.slice(0, 6).map((ci) => (
                                         <Link
-                                            to={`/members/${ci.memberId}`}
                                             key={ci._id}
-                                            className="flex items-center gap-4 p-4 hover:bg-[#ccff00]/10 transition-colors group"
+                                            to={`/members/${ci.memberId}`}
+                                            className="grid grid-cols-[36px_1fr_auto] items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-hover transition-colors group"
                                         >
-                                            <div className="h-12 w-12 border-2 border-theme-strong bg-theme-raised flex items-center justify-center text-theme font-black shadow-[4px_4px_0px_0px_var(--border-strong)] group-hover:bg-[#ccff00] transition-colors">
+                                            <span className="grid h-9 w-9 place-items-center rounded-xl bg-energy/12 text-energy text-xs font-bold">
                                                 {ci.member.firstName[0]}{ci.member.lastName[0]}
+                                            </span>
+                                            <div className="min-w-0">
+                                                <div className="text-sm font-semibold truncate">{ci.member.firstName} {ci.member.lastName}</div>
+                                                <div className="text-[11px] font-mono text-theme-muted mt-0.5">{ci.member.qrCode}</div>
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="text-base font-black uppercase truncate text-theme">
-                                                    {ci.member.firstName} {ci.member.lastName}
-                                                </div>
-                                                <div className="text-xs font-bold flex items-center gap-2 text-theme-muted uppercase tracking-widest mt-1">
+                                            <div className="text-right">
+                                                <div className="text-[11px] font-mono text-theme-secondary flex items-center gap-1 justify-end">
                                                     <Clock className="h-3 w-3" />
                                                     {formatDateTime(ci.timestamp)}
                                                 </div>
+                                                <ChevronRight className="h-4 w-4 text-theme-muted mt-1 ml-auto opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
                                             </div>
-                                            <ChevronRight className="h-6 w-6 text-theme opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all" />
                                         </Link>
                                     ))}
                                 </div>
@@ -381,59 +188,238 @@ export default function GymDashboard() {
                         </div>
                     </motion.div>
 
-                    <motion.div 
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="flex-1 min-h-[260px] md:min-h-[320px] border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)] flex flex-col relative overflow-hidden"
-                    >
-                        <div className="absolute top-[-50px] right-[-50px] text-slate-100 pointer-events-none z-0">
-                            <AlertTriangle className="h-24 md:h-48 w-24 md:h-48 w-48 opacity-20" />
+                    {/* Foot traffic */}
+                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }} className="card p-5">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-sm font-bold">Foot traffic · today</h3>
+                            <span className="text-[11px] font-mono text-theme-muted">visits / hour</span>
                         </div>
-                        <div className="p-4 md:p-5 border-b-4 border-theme-strong bg-amber-500 flex items-center justify-between relative z-10">
-                            <h3 className="font-black uppercase tracking-widest flex items-center gap-2 md:gap-3 text-theme text-sm md:text-base">
-                                <AlertTriangle className="h-4 w-4 md:h-5 md:w-5" />
-                                Needs attention
+                        <div className="flex items-end gap-1 h-32">
+                            {hourBars.map((c, idx) => {
+                                const h = (barStart + idx) % 24;
+                                const isNow = h === new Date().getHours();
+                                const pct = Math.round((c / maxHour) * 100);
+                                return (
+                                    <div key={idx} className="flex-1 flex flex-col items-center gap-1">
+                                        <div className="w-full flex items-end" style={{ height: "100%" }}>
+                                            <div
+                                                className={`w-full rounded-t-md transition-all ${isNow ? "bg-energy" : "bg-energy/25"}`}
+                                                style={{ height: c === 0 ? "4px" : `${Math.max(6, pct)}%` }}
+                                                title={`${h}:00 · ${c} visits`}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className="flex gap-1 mt-2 text-[9px] font-mono text-theme-muted">
+                            {labels.map((l, idx) => (
+                                <div key={idx} className="flex-1 text-center">{idx % 3 === 0 ? l : ""}</div>
+                            ))}
+                        </div>
+                    </motion.div>
+                </div>
+
+                {/* Right column */}
+                <div className="flex flex-col gap-4">
+                    {/* Check-in */}
+                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="card overflow-hidden">
+                        <div className="px-5 py-4 border-b border-theme flex items-center gap-2.5">
+                            <span className="grid h-9 w-9 place-items-center rounded-xl bg-energy/12 text-energy">
+                                <Zap className="h-5 w-5" />
+                            </span>
+                            <div>
+                                <h3 className="text-sm font-bold">Check-in</h3>
+                                <p className="text-[11px] text-theme-muted">Type or scan a member code</p>
+                            </div>
+                        </div>
+                        <div className="p-5">
+                            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl border border-theme mb-4">
+                                <button
+                                    onClick={() => { setScannerMode("manual"); setCameraActive(false); }}
+                                    className={`py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${scannerMode === "manual" ? "bg-hover-accent text-energy" : "text-theme-muted hover:text-theme"}`}
+                                >
+                                    <Keyboard className="h-4 w-4" /> Manual
+                                </button>
+                                <button
+                                    onClick={() => { setScannerMode("camera"); setCameraActive(true); }}
+                                    className={`py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${scannerMode === "camera" ? "bg-hover-accent text-energy" : "text-theme-muted hover:text-theme"}`}
+                                >
+                                    <Camera className="h-4 w-4" /> Camera
+                                </button>
+                            </div>
+
+                            <AnimatePresence mode="wait">
+                                {!result ? (
+                                    <motion.div key="scanner" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                                        {scannerMode === "manual" ? (
+                                            <form onSubmit={handleManualSubmit} className="space-y-3">
+                                                <div className="relative">
+                                                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-muted" />
+                                                    <input
+                                                        type="text"
+                                                        value={manualCode}
+                                                        onChange={(e) => setManualCode(e.target.value.toUpperCase())}
+                                                        placeholder="Enter member ID…"
+                                                        className="field !pl-10 font-mono tracking-widest"
+                                                        autoFocus
+                                                    />
+                                                </div>
+                                                <button
+                                                    type="submit"
+                                                    disabled={scanning || !manualCode.trim()}
+                                                    className="btn btn--primary btn--md w-full"
+                                                >
+                                                    {scanning ? "Checking…" : "Check in"}
+                                                    {!scanning && <ChevronRight className="h-4 w-4" />}
+                                                </button>
+                                            </form>
+                                        ) : (
+                                            <div>
+                                                <div
+                                                    className="relative overflow-hidden rounded-xl border border-theme-strong bg-bg-solid mx-auto"
+                                                    style={{ aspectRatio: "1/1", maxWidth: "320px", width: "100%" }}
+                                                >
+                                                    <div id="qr-reader-main" className="w-full h-full" />
+                                                    {cameraActive && !cameraError && (
+                                                        <div className="absolute inset-0 pointer-events-none">
+                                                            <div className="absolute top-3 left-3 w-7 h-7 border-t-2 border-l-2 border-energy rounded-tl-lg" />
+                                                            <div className="absolute top-3 right-3 w-7 h-7 border-t-2 border-r-2 border-energy rounded-tr-lg" />
+                                                            <div className="absolute bottom-3 left-3 w-7 h-7 border-b-2 border-l-2 border-energy rounded-bl-lg" />
+                                                            <div className="absolute bottom-3 right-3 w-7 h-7 border-b-2 border-r-2 border-energy rounded-br-lg" />
+                                                            <motion.div
+                                                                className="absolute left-3 right-3 h-0.5 bg-energy shadow-[0_0_12px_var(--color-energy)]"
+                                                                animate={{ top: ["12%", "88%", "12%"] }}
+                                                                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                                                            />
+                                                            <div className="absolute bottom-3 left-0 right-0 text-center">
+                                                                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-energy bg-black/60 px-2.5 py-1 rounded-full">
+                                                                    <Scan className="h-3.5 w-3.5" /> {scannerActive ? "Scanning" : "Ready"}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {cameraError && (
+                                                    <div className="mt-3 rounded-xl border border-danger/40 bg-danger/10 p-3 text-xs text-danger text-center">
+                                                        {cameraError}
+                                                        <button
+                                                            onClick={() => { setCameraActive(false); setTimeout(() => setCameraActive(true), 100); }}
+                                                            className="btn btn--ghost btn--sm w-full mt-2"
+                                                        >
+                                                            Try again
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                {!cameraActive && !cameraError && (
+                                                    <button
+                                                        onClick={() => setCameraActive(true)}
+                                                        className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 rounded-xl gap-3 mt-3"
+                                                        style={{ position: "relative", aspectRatio: "1/1", maxWidth: "320px", width: "100%", margin: "0 auto" }}
+                                                    >
+                                                        <span className="grid h-12 w-12 place-items-center rounded-xl border border-energy text-energy">
+                                                            <Camera className="h-6 w-6" />
+                                                        </span>
+                                                        <span className="text-sm font-semibold text-energy">Start camera</span>
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </motion.div>
+                                ) : (
+                                    <motion.div key="result" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}>
+                                        <div className={`rounded-xl border p-5 text-center ${
+                                            resultTone === "success" ? "border-success/40 bg-success/10" :
+                                            resultTone === "warning" ? "border-warning/40 bg-warning/10" :
+                                            "border-danger/40 bg-danger/10"
+                                        }`}>
+                                            <span className={`mx-auto grid h-12 w-12 place-items-center rounded-xl mb-3 ${
+                                                resultTone === "success" ? "bg-success/20 text-success" :
+                                                resultTone === "warning" ? "bg-warning/20 text-warning" :
+                                                "bg-danger/20 text-danger"
+                                            }`}>
+                                                {resultTone === "success" ? <Zap className="h-6 w-6" /> : resultTone === "warning" ? <AlertTriangle className="h-6 w-6" /> : <Activity className="h-6 w-6" />}
+                                            </span>
+                                            {result.member ? (
+                                                <>
+                                                    <h3 className="text-xl font-extrabold tracking-tight">
+                                                        {result.member.firstName} {result.member.lastName}
+                                                    </h3>
+                                                    <p className={`text-xs font-semibold mt-1 ${
+                                                        resultTone === "success" ? "text-success" : "text-warning"
+                                                    }`}>
+                                                        {result.status === "checked_in" ? "Checked in" : "Already here"}
+                                                    </p>
+                                                    {result.membership && (
+                                                        <div className="mt-3 rounded-lg border border-theme bg-bg-raised p-3 text-left">
+                                                            <div className="eyebrow">Plan</div>
+                                                            <div className="font-bold text-sm mt-1">{result.membership.planName}</div>
+                                                            <div className="text-[11px] text-theme-muted mt-1 font-mono">Ends {formatDate(result.membership.endDate)}</div>
+                                                        </div>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <h3 className="text-xl font-extrabold tracking-tight text-danger">Not found</h3>
+                                                    {result.errorDetails ? (
+                                                        <DetailedErrorPanel error={result.errorDetails} className="mt-3 text-left" />
+                                                    ) : (
+                                                        <p className="text-sm text-theme-secondary mt-1">{result.message}</p>
+                                                    )}
+                                                </>
+                                            )}
+                                            <button onClick={resetResult} className="btn btn--ghost btn--md w-full mt-4">
+                                                Next check-in
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </motion.div>
+
+                    {/* Renewal queue */}
+                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card">
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-theme">
+                            <h3 className="text-sm font-bold flex items-center gap-2">
+                                <AlertTriangle className="h-4 w-4 text-warning" /> Renewals
                             </h3>
-                            <Link to="/members" className="text-[9px] md:text-[10px] font-black uppercase tracking-widest border-2 border-theme-strong bg-theme-raised px-2 md:px-3 py-1 hover:bg-black hover:text-white transition-colors shadow-[4px_4px_0px_0px_var(--border-strong)]">
-                                See all
-                            </Link>
+                            <Link to="/members" className="text-[11px] font-mono text-energy hover:underline">see all</Link>
                         </div>
-                        <div className="flex-1 overflow-auto relative z-10 bg-theme-raised">
+                        <div className="p-2">
                             {!expiringMemberships || expiringMemberships.length === 0 ? (
-                                <div className="h-full flex flex-col items-center justify-center p-8 text-theme-muted">
-                                    <CheckCircle2 className="h-12 w-12 mb-4 opacity-30" />
-                                    <p className="text-xs font-black uppercase tracking-widest">All good</p>
+                                <div className="py-10 flex flex-col items-center justify-center text-theme-muted gap-2">
+                                    <TrendingUp className="h-7 w-7 opacity-40" />
+                                    <p className="eyebrow">All clear</p>
                                 </div>
                             ) : (
-                                <div className="divide-y-2 divide-black">
-                                    {expiringMemberships.slice(0, 8).map((em) => (
-                                        <Link
-                                            to={`/members/${em.memberId}`}
-                                            key={em._id}
-                                            className="flex items-center gap-4 p-4 hover:bg-amber-50 transition-colors group"
-                                        >
-                                            <div className="h-12 w-12 border-2 border-theme-strong bg-theme-raised flex items-center justify-center text-theme font-black shadow-[4px_4px_0px_0px_var(--border-strong)] group-hover:bg-amber-400 transition-colors">
-                                                {em.member.firstName[0]}{em.member.lastName[0]}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="text-base font-black uppercase truncate text-theme">
-                                                    {em.member.firstName} {em.member.lastName}
+                                <div className="flex flex-col">
+                                    {expiringMemberships.slice(0, 5).map((em) => {
+                                        const days = Math.max(0, Math.ceil((em.endDate - Date.now()) / (1000 * 60 * 60 * 24)));
+                                        const progress = Math.min(1, days / 30);
+                                        return (
+                                            <Link
+                                                key={em._id}
+                                                to={`/members/${em.memberId}`}
+                                                className="grid grid-cols-[36px_1fr_auto] items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-hover transition-colors"
+                                            >
+                                                <span className="grid h-9 w-9 place-items-center rounded-xl bg-danger/12 text-danger text-xs font-bold">
+                                                    {em.member.firstName[0]}{em.member.lastName[0]}
+                                                </span>
+                                                <div className="min-w-0">
+                                                    <div className="text-sm font-semibold truncate">{em.member.firstName} {em.member.lastName}</div>
+                                                    <div className="mt-1.5 h-1 rounded-full bg-hover overflow-hidden">
+                                                        <div className="h-full rounded-full bg-danger" style={{ width: `${Math.round((1 - progress) * 100)}%` }} />
+                                                    </div>
+                                                    <div className="text-[11px] text-theme-muted mt-1">{em.planName}</div>
                                                 </div>
-                                                <div className="text-xs font-bold text-theme-muted uppercase tracking-widest mt-1">
-                                                    {em.planName}
+                                                <div className="text-right">
+                                                    <div className="text-base font-bold text-danger leading-none">{days}</div>
+                                                    <div className="text-[10px] text-theme-muted mt-1 font-mono">{formatTimeAgo(em.endDate)}</div>
                                                 </div>
-                                            </div>
-                                            <div className="text-right flex flex-col items-end">
-                                                <div className="text-[10px] font-black tracking-widest text-white bg-amber-500 px-2 py-1 uppercase border-2 border-theme-strong mb-1">
-                                                    Ending
-                                                </div>
-                                                <div className="text-xs font-bold text-theme uppercase tracking-widest">
-                                                    {formatTimeAgo(em.endDate)}
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    ))}
+                                            </Link>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>

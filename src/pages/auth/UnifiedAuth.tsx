@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building2, Mail, Lock, Ticket, Phone, MapPin, Loader2, Zap, Moon, Sun } from "lucide-react";
+import { Building2, Mail, Lock, Ticket, Phone, MapPin, Loader2, Moon, Sun, Shield } from "lucide-react";
 import { useAuth } from "../../lib/useAuth";
 import { useTheme } from "../../lib/useTheme";
 import { Link } from "react-router-dom";
 import { DetailedErrorPanel } from "../../components/feedback/DetailedErrorPanel";
+import { Mark } from "../../components/layout/Mark";
 import type { AppErrorDetails } from "../../lib/errorHandling";
 
 type Role = "gym" | "member" | "superadmin";
@@ -55,12 +56,12 @@ export default function UnifiedAuth() {
   const gymMode = role === "gym" ? mode : "signin";
 
   const submitLabel = useMemo(() => {
-    if (isLoading) return "LOADING...";
-    if (role === "gym" && gymMode === "register") return "CREATE ACCOUNT";
-    if (role === "gym") return "SIGN IN";
-    if (memberAuthMode === "first-time" && !memberInviteVerified) return "CHECK INVITE";
-    if (memberAuthMode === "first-time" && memberInviteVerified) return "SET PASSWORD";
-    return "SIGN IN";
+    if (isLoading) return "Loading…";
+    if (role === "gym" && gymMode === "register") return "Create account";
+    if (role === "gym") return "Sign in";
+    if (memberAuthMode === "first-time" && !memberInviteVerified) return "Check invite";
+    if (memberAuthMode === "first-time" && memberInviteVerified) return "Set password";
+    return "Sign in";
   }, [isLoading, gymMode, role, memberAuthMode, memberInviteVerified]);
 
   const onChange = (key: keyof typeof form, value: string) => {
@@ -81,10 +82,7 @@ export default function UnifiedAuth() {
         city: form.city,
         description: form.description || undefined,
       });
-
-      if (!result.success && "error" in result) {
-        setError(result.error);
-      }
+      if (!result.success && "error" in result) setError(result.error);
       return;
     }
 
@@ -94,330 +92,281 @@ export default function UnifiedAuth() {
           invitationCode: form.invitationCode,
           phone: form.phone,
         });
-
         if (!verifyResult.success && "error" in verifyResult) {
           setError(verifyResult.error);
           return;
         }
-
         setMemberInviteVerified(true);
         setMemberDisplayName(verifyResult.memberName ?? "");
         return;
       }
-
       const onboardingResult = await completeMemberOnboarding({
         invitationCode: form.invitationCode,
         phone: form.phone,
         email: form.email,
         password: form.password,
       });
-
-      if (!onboardingResult.success && "error" in onboardingResult) {
-        setError(onboardingResult.error);
-      }
+      if (!onboardingResult.success && "error" in result) setError(onboardingResult.error);
       return;
     }
 
-    const result = await login({
-      role,
-      email: form.email,
-      password: form.password,
-    });
-
-    if (!result.success && "error" in result) {
-      setError(result.error);
-    }
+    const result = await login({ role, email: form.email, password: form.password });
+    if (!result.success && "error" in result) setError(result.error);
   };
 
   if (!isInitialized) {
     return (
-      <div className="min-h-screen bg-theme-raised flex items-center justify-center font-['Outfit']">
-        <Loader2 className="h-12 w-12 animate-spin text-theme" />
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-accent-light" />
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-theme text-theme font-['Outfit'] selection:bg-[#ccff00] selection:text-[#000000] flex flex-col md:flex-row relative">
-      <div className="absolute inset-0 z-0 pointer-events-none [background-size:24px_24px] opacity-60" style={{ backgroundImage: "radial-gradient(var(--border) 1px, transparent 1px)" }} />
+  const heading = role === "gym" ? "Gym / Staff" : "Member";
+  const sub = role === "gym" ? "Manage your gym from one calm dashboard." : "Your membership, QR pass, and plans.";
 
-      {/* Theme Toggle Button Top Right */}
+  return (
+    <div className="min-h-screen font-sans text-theme flex flex-col md:flex-row relative">
       <button
         onClick={toggleTheme}
-        className="absolute top-3 right-3 md:top-6 md:right-6 z-50 p-2 md:p-3 bg-theme-sidebar border-2 border-theme-strong hover:bg-[#ccff00] hover:text-theme transition-colors shadow-[4px_4px_0px_0px_var(--border-strong)] text-theme"
+        className="absolute top-4 right-4 md:top-6 md:right-6 z-50 grid h-10 w-10 place-items-center rounded-xl glass hover-theme transition-colors"
         aria-label="Switch theme"
       >
-        {theme === 'dark' ? <Sun className="w-4 h-4 md:w-5 md:h-5" /> : <Moon className="w-4 h-4 md:w-5 md:h-5" />}
+        {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       </button>
 
-      {/* Left Branding Panel */}
-      <div className="hidden md:flex w-[40%] bg-theme-sidebar p-12 border-r-4 border-theme-strong relative z-10 flex-col justify-between text-theme">
-        <div>
-          <Link to="/" className="inline-flex items-center gap-2 text-2xl font-black uppercase tracking-widest font-['Syncopate'] hover:text-[#ccff00] transition-colors mb-16">
-            <Zap className="text-[#ccff00] w-6 h-6" /> KINETIC
-          </Link>
-          <motion.h1 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            key={role + mode}
-            className="text-5xl lg:text-7xl font-black uppercase leading-[0.9] font-['Syncopate']"
-          >
-            {role === "gym" ? "GYM" : "MEMBER"}
+      {/* Left brand panel */}
+      <div className="hidden md:flex md:w-[42%] p-12 lg:p-16 flex-col justify-between relative overflow-hidden">
+        <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-accent/30 blur-[120px] animate-[float_9s_ease-in-out_infinite]" />
+        <div className="pointer-events-none absolute bottom-0 right-0 h-80 w-80 rounded-full bg-info/20 blur-[120px]" />
+
+        <Link to="/" className="relative flex items-center gap-2.5 group w-fit">
+          <Mark />
+          <span className="brand-mark text-sm text-theme">KINETIC</span>
+        </Link>
+
+        <motion.div
+          key={role + mode}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="relative"
+        >
+          <span className="eyebrow text-accent-light">Welcome back</span>
+          <h1 className="mt-4 text-5xl lg:text-7xl font-extrabold tracking-[-0.03em] leading-[0.95]">
+            {heading}
             <br />
-            <span className="text-[#ccff00]">
-              {mode === "register" ? "SIGN UP" : "SIGN IN"}
+            <span className="font-serif italic font-normal glow-text">
+              {mode === "register" ? "sign up" : "sign in"}
             </span>
-          </motion.h1>
-        </div>
-        <div className="border-l-4 border-[#ccff00] pl-6 py-2">
-          <p className="text-xl font-bold uppercase tracking-wider text-theme-muted">
-            {role === "gym" ? "MANAGE YOUR GYM" : "MEMBER LOGIN"}
-          </p>
+          </h1>
+          <p className="mt-6 text-lg text-theme-secondary max-w-sm">{sub}</p>
+        </motion.div>
+
+        <div className="relative flex items-center gap-3 text-sm text-theme-muted">
+          <Shield className="h-4 w-4 text-accent-light" />
+          Protected, session-based authentication
         </div>
       </div>
 
-      {/* Right Form Panel */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-12 relative z-10 bg-theme-raised">
-        
-        {/* Mobile Header */}
-        <div className="md:hidden w-full flex items-center mb-6 pb-4 border-b-4 border-theme-strong">
-           <Link to="/" className="inline-flex items-center gap-2 font-black uppercase tracking-widest font-['Syncopate']">
-            <Zap className="text-[#ccff00] w-5 h-5" /> <span className="text-base text-theme">KINETIC</span>
-          </Link>
+      {/* Right form panel */}
+      <div className="flex-1 flex flex-col items-center justify-center p-5 md:p-12 relative">
+        <div className="md:hidden w-full max-w-md flex items-center gap-2.5 mb-8">
+          <Mark />
+          <span className="brand-mark text-sm text-theme">KINETIC</span>
         </div>
 
         <div className="w-full max-w-md">
-          {/* Role Toggle */}
-          <div className="flex p-1 bg-theme-sidebar border-2 border-theme-strong mb-8">
-              <button
-                type="button"
-                onClick={() => {
-                  setRole("gym");
-                  setError(null);
-                }}
-              className={`flex-1 py-3 text-sm font-black uppercase tracking-widest transition-all ${
-                role === "gym" 
-                  ? "bg-[#ccff00] border-2 border-theme-strong shadow-[4px_4px_0px_0px_var(--border-strong)] translate-x-[-2px] translate-y-[-2px]" 
-                  : "text-theme-muted hover:text-theme"
-              }`}
+          <div className="mb-7">
+            <h2 className="text-2xl font-extrabold tracking-tight">Sign in to continue</h2>
+            <p className="text-sm text-theme-muted mt-1.5">Choose your portal below.</p>
+          </div>
+
+          {/* Role toggle */}
+          <div className="grid grid-cols-2 gap-1 p-1 glass rounded-2xl mb-6">
+            <button
+              type="button"
+              onClick={() => { setRole("gym"); setError(null); }}
+className={`py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                 role === "gym" ? "bg-energy text-[#07120f]" : "text-theme-secondary hover:text-theme"
+               }`}
             >
               Gym / Staff
             </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setRole("member");
-                  setMode("signin");
-                  setMemberAuthMode("regular");
-                  setMemberInviteVerified(false);
-                  setMemberDisplayName("");
-                  setForm((prev) => ({ ...prev, invitationCode: "", phone: "", password: "", email: "" }));
-                  setError(null);
-                }}
-               className={`flex-1 py-3 text-sm font-black uppercase tracking-widest transition-all ${
-                role === "member" 
-                  ? "bg-theme-sidebar text-theme border-2 border-theme-strong shadow-[2px_2px_0px_0px_rgba(204,255,0,1)] translate-x-[-2px] translate-y-[-2px]" 
-                  : "text-theme-muted hover:text-theme"
+            <button
+              type="button"
+              onClick={() => {
+                setRole("member");
+                setMode("signin");
+                setMemberAuthMode("regular");
+                setMemberInviteVerified(false);
+                setMemberDisplayName("");
+                setForm((prev) => ({ ...prev, invitationCode: "", phone: "", password: "", email: "" }));
+                setError(null);
+              }}
+              className={`py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                role === "member" ? "bg-energy text-[#07120f]" : "text-theme-secondary hover:text-theme"
               }`}
-              >
-                Member
-              </button>
-            </div>
+            >
+              Member
+            </button>
+          </div>
 
-            <form onSubmit={onSubmit} className="space-y-5">
-              {role === "member" && (
-                <div className="flex gap-4 mb-6 border-b-2 border-theme-strong pb-6">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMemberAuthMode("regular");
-                        setMemberInviteVerified(false);
-                        setMemberDisplayName("");
-                        setForm((prev) => ({ ...prev, invitationCode: "", phone: "" }));
-                        setError(null);
-                      }}
-                    className={`flex-1 pb-2 text-left font-bold uppercase ${memberAuthMode === "regular" ? "text-theme border-b-4 border-[#ccff00]" : "text-theme-muted"}`}
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMemberAuthMode("first-time");
-                        setMemberInviteVerified(false);
-                        setMemberDisplayName("");
-                        setForm((prev) => ({ ...prev, invitationCode: "", phone: "", password: "", email: "" }));
-                        setError(null);
-                      }}
-                    className={`flex-1 pb-2 text-left font-bold uppercase ${memberAuthMode === "first-time" ? "text-theme border-b-4 border-[#ccff00]" : "text-theme-muted"}`}
-                  >
-                    New Member
-                  </button>
-                </div>
-              )}
+          <form onSubmit={onSubmit} className="space-y-4">
+            {role === "member" && (
+              <div className="flex gap-2 mb-2 p-1 rounded-xl border border-theme">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMemberAuthMode("regular");
+                    setMemberInviteVerified(false);
+                    setMemberDisplayName("");
+                    setForm((prev) => ({ ...prev, invitationCode: "", phone: "" }));
+                    setError(null);
+                  }}
+                  className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                    memberAuthMode === "regular" ? "bg-hover-accent text-theme" : "text-theme-muted hover:text-theme"
+                  }`}
+                >
+                  Sign in
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMemberAuthMode("first-time");
+                    setMemberInviteVerified(false);
+                    setMemberDisplayName("");
+                    setForm((prev) => ({ ...prev, invitationCode: "", phone: "", password: "", email: "" }));
+                    setError(null);
+                  }}
+                  className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                    memberAuthMode === "first-time" ? "bg-hover-accent text-theme" : "text-theme-muted hover:text-theme"
+                  }`}
+                >
+                  New member
+                </button>
+              </div>
+            )}
 
-              {/* Gym Mode Toggle */}
-              <AnimatePresence mode="wait">
-                {role === "gym" && (
-                <motion.div 
+            <AnimatePresence mode="wait">
+              {role === "gym" && (
+                <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  className="flex gap-4 mb-6 border-b-2 border-theme-strong pb-6"
+                  className="flex gap-2 p-1 rounded-xl border border-theme overflow-hidden"
                 >
                   <button
                     type="button"
                     onClick={() => setMode("signin")}
-                    className={`flex-1 pb-2 text-left font-bold uppercase ${gymMode === "signin" ? "text-theme border-b-4 border-[#ccff00]" : "text-theme-muted"}`}
+                    className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                      gymMode === "signin" ? "bg-hover-accent text-theme" : "text-theme-muted hover:text-theme"
+                    }`}
                   >
-                    Sign In
+                    Sign in
                   </button>
                   <button
                     type="button"
                     onClick={() => setMode("register")}
-                    className={`flex-1 pb-2 text-left font-bold uppercase ${gymMode === "register" ? "text-theme border-b-4 border-[#ccff00]" : "text-theme-muted"}`}
+                    className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                      gymMode === "register" ? "bg-hover-accent text-theme" : "text-theme-muted hover:text-theme"
+                    }`}
                   >
-                    Sign Up
+                    Sign up
                   </button>
                 </motion.div>
-                )}
-              </AnimatePresence>
+              )}
+            </AnimatePresence>
 
             {role === "member" && memberAuthMode === "first-time" && !memberInviteVerified && (
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Invite Code</label>
-                <div className="relative">
-                  <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme" />
-                  <input
-                    value={form.invitationCode}
-                    onChange={(e) => onChange("invitationCode", e.target.value.toUpperCase())}
-                    required
-                    className="w-full bg-theme-sidebar border-2 border-theme-strong p-4 pl-12 text-theme font-bold focus:bg-[#ccff00]/10 focus:outline-none focus:shadow-[4px_4px_0px_0px_var(--border-strong)] transition-all placeholder:text-theme-muted"
-                    placeholder="MEM-XXXX-XXXX"
-                  />
-                </div>
-              </div>
+              <Field label="Invite code" icon={Ticket}>
+                <input
+                  value={form.invitationCode}
+                  onChange={(e) => onChange("invitationCode", e.target.value.toUpperCase())}
+                  required
+                  className="field !pl-11"
+                  placeholder="MEM-XXXX-XXXX"
+                />
+              </Field>
             )}
 
             {role === "member" && memberAuthMode === "first-time" && !memberInviteVerified && (
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Phone Number</label>
-                <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme" />
-                  <input
-                    value={form.phone}
-                    onChange={(e) => onChange("phone", e.target.value)}
-                    required
-                    className="w-full bg-theme-sidebar border-2 border-theme-strong p-4 pl-12 text-theme font-bold focus:bg-[#ccff00]/10 focus:outline-none focus:shadow-[4px_4px_0px_0px_var(--border-strong)] transition-all"
-                    placeholder="+1 555 123 4567"
-                  />
-                </div>
-              </div>
+              <Field label="Phone number" icon={Phone}>
+                <input
+                  value={form.phone}
+                  onChange={(e) => onChange("phone", e.target.value)}
+                  required
+                  className="field !pl-11"
+                  placeholder="+1 555 123 4567"
+                />
+              </Field>
             )}
 
             {role === "member" && memberAuthMode === "first-time" && memberInviteVerified && (
-              <div className="bg-emerald-500/10 border-2 border-emerald-500 p-4 text-emerald-600 dark:text-emerald-400 font-bold">
+              <div className="rounded-2xl border border-success/40 bg-success/10 p-4 text-sm text-success flex items-center gap-2.5">
+                <Shield className="h-4 w-4 shrink-0" />
                 Invite checked{memberDisplayName ? ` for ${memberDisplayName}` : ""}. Pick your email and password.
               </div>
             )}
 
             {role === "gym" && gymMode === "register" && (
               <>
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Gym Name</label>
-                  <div className="relative">
-                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme" />
-                    <input 
-                      value={form.name} 
-                      onChange={(e) => onChange("name", e.target.value)} 
-                      required 
-                      className="w-full bg-theme-sidebar border-2 border-theme-strong p-4 pl-12 text-theme font-bold focus:bg-[#ccff00]/10 focus:outline-none focus:shadow-[4px_4px_0px_0px_var(--border-strong)] transition-all" 
-                    />
-                  </div>
+                <Field label="Gym name" icon={Building2}>
+                  <input value={form.name} onChange={(e) => onChange("name", e.target.value)} required className="field !pl-11" />
+                </Field>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Phone" icon={Phone}>
+                    <input value={form.phone} onChange={(e) => onChange("phone", e.target.value)} required className="field !pl-11" />
+                  </Field>
+                  <Field label="City" icon={MapPin}>
+                    <input value={form.city} onChange={(e) => onChange("city", e.target.value)} required className="field !pl-11" />
+                  </Field>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Phone</label>
-                    <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme" />
-                      <input 
-                        value={form.phone} 
-                        onChange={(e) => onChange("phone", e.target.value)} 
-                        required 
-                        className="w-full bg-theme-sidebar border-2 border-theme-strong p-4 pl-12 text-theme font-bold focus:bg-[#ccff00]/10 focus:outline-none focus:shadow-[4px_4px_0px_0px_var(--border-strong)] transition-all" 
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-theme-muted">City</label>
-                    <div className="relative">
-                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme" />
-                      <input 
-                        value={form.city} 
-                        onChange={(e) => onChange("city", e.target.value)} 
-                        required 
-                        className="w-full bg-theme-sidebar border-2 border-theme-strong p-4 pl-12 text-theme font-bold focus:bg-[#ccff00]/10 focus:outline-none focus:shadow-[4px_4px_0px_0px_var(--border-strong)] transition-all" 
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Address</label>
-                  <input 
-                    value={form.address} 
-                    onChange={(e) => onChange("address", e.target.value)} 
-                    required 
-                    className="w-full bg-theme-sidebar border-2 border-theme-strong p-4 text-theme font-bold focus:bg-[#ccff00]/10 focus:outline-none focus:shadow-[4px_4px_0px_0px_var(--border-strong)] transition-all" 
-                  />
-                </div>
+                <Field label="Address">
+                  <input value={form.address} onChange={(e) => onChange("address", e.target.value)} required className="field" />
+                </Field>
               </>
             )}
 
             {(role === "gym" || memberAuthMode === "regular" || (role === "member" && memberInviteVerified)) && (
-              <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme" />
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => onChange("email", e.target.value)}
-                  required
-                  className="w-full bg-theme-sidebar border-2 border-theme-strong p-4 pl-12 text-theme font-bold focus:bg-[#ccff00]/10 focus:outline-none focus:shadow-[4px_4px_0px_0px_var(--border-strong)] transition-all"
-                />
-              </div>
-              </div>
+              <Field label="Email" icon={Mail}>
+                <input type="email" value={form.email} onChange={(e) => onChange("email", e.target.value)} required className="field !pl-11" />
+              </Field>
             )}
 
             {(role === "gym" || memberAuthMode === "regular" || (role === "member" && memberInviteVerified)) && (
-              <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-theme-muted">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme" />
-                <input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => onChange("password", e.target.value)}
-                  required
-                  minLength={6}
-                  className="w-full bg-theme-sidebar border-2 border-theme-strong p-4 pl-12 text-theme font-bold focus:bg-[#ccff00]/10 focus:outline-none focus:shadow-[4px_4px_0px_0px_var(--border-strong)] transition-all"
-                />
-              </div>
-              </div>
+              <Field label="Password" icon={Lock}>
+                <input type="password" value={form.password} onChange={(e) => onChange("password", e.target.value)} required minLength={6} className="field !pl-11" />
+              </Field>
             )}
 
             {error && <DetailedErrorPanel error={error} />}
 
-            <button 
-              type="submit" 
-              disabled={isLoading} 
-              className="w-full mt-8 border-2 border-[#ccff00] bg-[#ccff00] text-[#000000] p-5 font-black uppercase tracking-widest hover:bg-[#b3e600] transition-colors shadow-[4px_4px_0px_0px_#ccff00] hover:translate-x-[-2px] hover:translate-y-[-2px] flex items-center justify-center gap-3 disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0"
-            >
+            <button type="submit" disabled={isLoading} className="btn btn--primary btn--lg w-full mt-2">
               {isLoading && <Loader2 className="h-5 w-5 animate-spin" />}
               {submitLabel}
             </button>
           </form>
+
+          <div className="mt-7 pt-6 border-t border-theme flex items-center justify-between text-sm">
+            <Link to="/" className="text-theme-muted hover:text-accent-light transition-colors">← Back to site</Link>
+            <Link to="/admin/auth" className="text-theme-muted hover:text-energy transition-colors inline-flex items-center gap-1.5">
+              <Shield className="h-3.5 w-3.5" /> Admin
+            </Link>
+          </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, icon: Icon, children }: { label: string; icon?: typeof Mail; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <label className="eyebrow">{label}</label>
+      <div className="relative">
+        {Icon && <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-theme-muted pointer-events-none" />}
+        {children}
       </div>
     </div>
   );

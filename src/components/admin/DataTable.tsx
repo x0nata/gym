@@ -70,29 +70,31 @@ export function DataTable<T extends { _id?: string | unknown }>({
         <div>
             {searchPlaceholder && searchKeys && (
                 <div className="mb-4 relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-muted" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-muted" />
                     <input
                         type="text"
                         placeholder={searchPlaceholder}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 border-2 border-theme-strong bg-theme-sidebar text-theme font-bold uppercase tracking-wider text-sm placeholder:text-theme-muted focus:border-[#ccff00] focus:outline-none"
+                        className="field !pl-11 !rounded-xl"
                     />
                 </div>
             )}
 
-            <div className="border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)] overflow-hidden">
+            <div className="card overflow-hidden">
                 {sorted.length === 0 ? (
-                    <div className="p-10 text-center text-theme-muted font-black uppercase tracking-wider">{emptyMessage}</div>
+                    <div className="py-16 text-center eyebrow">{emptyMessage}</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="border-b-4 border-theme-strong bg-theme-sidebar">
+                                <tr className="border-b border-theme">
                                     {columns.map((col) => (
                                         <th
                                             key={col.key}
-                                            className={`px-4 py-3 text-left text-xs font-black uppercase tracking-[0.2em] text-theme-muted ${col.sortable ? "cursor-pointer hover:text-[#ccff00] select-none" : ""}`}
+                                            className={`px-5 py-3.5 text-left text-[0.7rem] font-bold uppercase tracking-[0.14em] text-theme-muted ${
+                                                col.sortable ? "cursor-pointer hover:text-accent-light select-none transition-colors" : ""
+                                            }`}
                                             onClick={() => col.sortable && handleSort(col.key)}
                                         >
                                             <div className="flex items-center gap-1.5">
@@ -105,11 +107,11 @@ export function DataTable<T extends { _id?: string | unknown }>({
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y-2 divide-theme-strong">
+                            <tbody className="divide-y divide-[var(--border)]">
                                 {sorted.map((row, idx) => (
-                                    <tr key={idx} className="hover:bg-theme-sidebar transition-colors">
+                                    <tr key={idx} className="hover:bg-hover transition-colors">
                                         {columns.map((col) => (
-                                            <td key={col.key} className="px-4 py-3 text-sm font-bold text-theme">
+                                            <td key={col.key} className="px-5 py-4 text-sm font-medium text-theme">
                                                 {col.render(row)}
                                             </td>
                                         ))}
@@ -122,7 +124,7 @@ export function DataTable<T extends { _id?: string | unknown }>({
             </div>
 
             {sorted.length > 0 && (
-                <p className="mt-2 text-xs font-bold uppercase tracking-wider text-theme-muted">
+                <p className="mt-3 text-xs text-theme-muted">
                     {sorted.length} {sorted.length === 1 ? "record" : "records"}
                 </p>
             )}

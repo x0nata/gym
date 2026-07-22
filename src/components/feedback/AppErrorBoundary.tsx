@@ -39,15 +39,15 @@ export class AppErrorBoundary extends Component<Props, State> {
     }
 
     return (
-      <div className="min-h-screen bg-theme-raised flex items-center justify-center p-4 font-['Outfit']">
-        <div className="w-full max-w-2xl border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)]">
-          <div className="p-4 md:p-6 border-b-4 border-theme-strong bg-theme-sidebar flex items-center gap-3">
-            <div className="h-10 w-10 border-2 border-theme-strong bg-white flex items-center justify-center">
-              <ShieldAlert className="h-5 w-5 text-red-600" />
+      <div className="min-h-screen bg-theme-raised flex items-center justify-center p-4">
+        <div className="w-full max-w-2xl card overflow-hidden">
+          <div className="p-4 md:p-6 border-b border-theme flex items-center gap-3" style={{ background: "var(--bg-sidebar)" }}>
+            <div className="h-10 w-10 rounded-xl border border-theme-strong bg-theme flex items-center justify-center">
+              <ShieldAlert className="h-5 w-5 text-danger" />
             </div>
             <div>
-              <p className="text-xs font-black uppercase tracking-widest text-theme-muted">Error</p>
-              <h1 className="text-lg font-black uppercase font-['Syncopate']">Oops</h1>
+              <p className="text-xs font-bold uppercase tracking-widest text-theme-muted">Error</p>
+              <h1 className="text-lg font-bold tracking-tight">Something broke</h1>
             </div>
           </div>
 
@@ -55,7 +55,7 @@ export class AppErrorBoundary extends Component<Props, State> {
             <DetailedErrorPanel error={this.state.error} />
             <button
               onClick={this.reload}
-              className="h-11 px-4 border-2 border-theme-strong bg-black text-white text-xs font-black uppercase tracking-widest inline-flex items-center gap-2 hover:bg-theme-raised hover:text-theme transition-colors"
+              className="btn btn--primary btn--lg"
             >
               <RefreshCcw className="h-4 w-4" />
               Reload

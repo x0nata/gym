@@ -20,7 +20,7 @@ export default function AdminUsers() {
     if (!users) {
         return (
             <div className="flex h-[60vh] items-center justify-center">
-                <div className="h-12 w-12 border-4 border-theme-strong border-t-transparent rounded-full animate-spin" />
+                <div className="h-10 w-10 rounded-full border-2 border-energy/30 border-t-energy animate-spin" />
             </div>
         );
     }
@@ -34,19 +34,15 @@ export default function AdminUsers() {
     ];
 
     return (
-        <div className="space-y-6 font-['Outfit']">
-            <motion.section
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)]"
-            >
-                <div className="p-6 border-b-4 border-theme-strong bg-theme-sidebar flex items-center gap-4">
-                    <div className="h-12 w-12 border-2 border-[#ccff00] bg-theme-raised text-[#ccff00] flex items-center justify-center">
+        <div className="space-y-5">
+            <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="card overflow-hidden">
+                <div className="p-5 md:p-6 border-b border-theme flex items-center gap-3.5">
+                    <span className="grid h-12 w-12 place-items-center rounded-2xl bg-energy/15 text-energy">
                         <Users className="h-6 w-6" />
-                    </div>
+                    </span>
                     <div>
-                        <p className="text-[10px] uppercase font-black tracking-[0.2em] text-theme-muted">User Management</p>
-                        <h1 className="text-2xl md:text-3xl font-black uppercase font-['Syncopate'] text-theme">Users</h1>
+                        <span className="eyebrow">User management</span>
+                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mt-1">Users</h1>
                     </div>
                 </div>
             </motion.section>
@@ -56,10 +52,10 @@ export default function AdminUsers() {
                     <button
                         key={f.value}
                         onClick={() => setRoleFilter(f.value)}
-                        className={`flex items-center gap-1.5 px-3 py-2 text-xs font-black uppercase tracking-wider border-2 transition-all ${
+                        className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border ${
                             roleFilter === f.value
-                                ? "border-[#ccff00] bg-[#ccff00]/10 text-[#ccff00] shadow-[2px_2px_0px_0px_#ccff00]"
-                                : "border-theme text-theme-muted hover:border-theme hover:text-theme"
+                                ? "border-energy/40 bg-energy/12 text-energy"
+                                : "border-theme text-theme-muted hover:text-theme hover:bg-hover"
                         }`}
                     >
                         <f.icon className="h-3.5 w-3.5" />
@@ -68,38 +64,34 @@ export default function AdminUsers() {
                 ))}
             </div>
 
-            <div className="mb-4 relative">
+            <div className="relative">
                 <input
                     type="text"
-                    placeholder="Search by email..."
+                    placeholder="Search by email…"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-theme-strong bg-theme-sidebar text-theme font-bold uppercase tracking-wider text-sm placeholder:text-theme-muted focus:border-[#ccff00] focus:outline-none"
+                    className="field"
                 />
             </div>
 
-            <div className="border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)] overflow-hidden">
+            <div className="card overflow-hidden">
                 {users.length === 0 ? (
-                    <div className="p-10 text-center text-theme-muted font-black uppercase tracking-wider">No users found.</div>
+                    <div className="p-10 text-center eyebrow">No users found.</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="border-b-4 border-theme-strong bg-theme-sidebar">
-                                    <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-[0.2em] text-theme-muted">User</th>
-                                    <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-[0.2em] text-theme-muted">Role</th>
-                                    <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-[0.2em] text-theme-muted">Profile</th>
-                                    <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-[0.2em] text-theme-muted">Status</th>
-                                    <th className="px-4 py-3 text-right text-xs font-black uppercase tracking-[0.2em] text-theme-muted">Actions</th>
+                                <tr className="border-b border-theme">
+                                    <th className="px-5 py-3.5 text-left eyebrow">User</th>
+                                    <th className="px-5 py-3.5 text-left eyebrow">Role</th>
+                                    <th className="px-5 py-3.5 text-left eyebrow">Profile</th>
+                                    <th className="px-5 py-3.5 text-left eyebrow">Status</th>
+                                    <th className="px-5 py-3.5 text-right eyebrow">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y-2 divide-theme-strong">
+                            <tbody className="divide-y divide-[var(--border)]">
                                 {users.map((entry, idx) => (
-                                    <UserRow
-                                        key={idx}
-                                        entry={entry}
-                                        sessionToken={sessionToken!}
-                                    />
+                                    <UserRow key={idx} entry={entry} sessionToken={sessionToken!} />
                                 ))}
                             </tbody>
                         </table>
@@ -108,9 +100,7 @@ export default function AdminUsers() {
             </div>
 
             {users.length > 0 && (
-                <p className="mt-2 text-xs font-bold uppercase tracking-wider text-theme-muted">
-                    {users.length} {users.length === 1 ? "user" : "users"}
-                </p>
+                <p className="text-xs text-theme-muted">{users.length} {users.length === 1 ? "user" : "users"}</p>
             )}
         </div>
     );
@@ -124,12 +114,13 @@ function UserRow({ entry, sessionToken }: { entry: { user: { _id: string; email:
 
     const { user: u, profile, profileName } = entry;
 
-    const roleColor = {
-        superadmin: "text-[#ccff00] border-[#ccff00]",
-        gym: "text-indigo-500 border-indigo-500",
-        coach: "text-amber-500 border-amber-500",
-        member: "text-sky-500 border-sky-500",
-    }[u.role] || "text-theme-muted border-theme";
+    const rolePill: Record<string, string> = {
+        superadmin: "pill--energy",
+        gym: "pill--accent",
+        coach: "pill--warning",
+        member: "pill--info",
+    };
+    const rolePillClass = rolePill[u.role] || "";
 
     const profileActive = profile ? (profile as { isActive?: boolean }).isActive : undefined;
 
@@ -142,37 +133,32 @@ function UserRow({ entry, sessionToken }: { entry: { user: { _id: string; email:
                 : null;
 
     return (
-        <tr className="hover:bg-theme-sidebar transition-colors">
-            <td className="px-4 py-3">
-                <p className="font-black uppercase text-sm text-theme">{u.email}</p>
-                <p className="text-xs font-bold text-theme-muted">{profileName || "—"}</p>
+        <tr className="hover:bg-hover transition-colors">
+            <td className="px-5 py-4">
+                <p className="font-semibold">{u.email}</p>
+                <p className="text-xs text-theme-muted mt-0.5">{profileName || "—"}</p>
             </td>
-            <td className="px-4 py-3">
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 border-2 text-xs font-black uppercase tracking-wider ${roleColor}`}>
-                    {u.role}
-                </span>
+            <td className="px-5 py-4">
+                <span className={`pill capitalize ${rolePillClass}`}>{u.role}</span>
             </td>
-            <td className="px-4 py-3">
-                <span className="text-xs font-bold uppercase text-theme-muted">
-                    {profileName || "—"}
-                </span>
+            <td className="px-5 py-4">
+                <span className="text-sm text-theme-secondary">{profileName || "—"}</span>
             </td>
-            <td className="px-4 py-3">
+            <td className="px-5 py-4">
                 {u.role === "superadmin" ? (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#ccff00] uppercase">
-                        <span className="h-2 w-2 rounded-full bg-[#ccff00]" />
-                        Active
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-energy">
+                        <span className="h-2 w-2 rounded-full bg-energy" /> Active
                     </span>
                 ) : profileActive !== undefined ? (
-                    <span className={`inline-flex items-center gap-1.5 text-xs font-bold uppercase ${profileActive ? "text-green-500" : "text-red-500"}`}>
-                        <span className={`h-2 w-2 rounded-full ${profileActive ? "bg-green-500" : "bg-red-500"}`} />
+                    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${profileActive ? "text-success" : "text-danger"}`}>
+                        <span className={`h-2 w-2 rounded-full ${profileActive ? "bg-success" : "bg-danger"}`} />
                         {profileActive ? "Active" : "Inactive"}
                     </span>
                 ) : (
-                    <span className="text-xs font-bold text-theme-muted">—</span>
+                    <span className="text-xs text-theme-muted">—</span>
                 )}
             </td>
-            <td className="px-4 py-3 text-right">
+            <td className="px-5 py-4 text-right">
                 <div className="flex items-center justify-end gap-2">
                     {canToggle && (
                         <ConfirmAction
@@ -181,11 +167,7 @@ function UserRow({ entry, sessionToken }: { entry: { user: { _id: string; email:
                             variant={profileActive ? "danger" : "default"}
                             onConfirm={canToggle}
                             trigger={
-                                <span className={`inline-flex items-center gap-1 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider border-2 cursor-pointer transition-all ${
-                                    profileActive
-                                        ? "border-red-500/50 bg-red-500/10 text-red-500 hover:bg-red-500/20"
-                                        : "border-green-500/50 bg-green-500/10 text-green-500 hover:bg-green-500/20"
-                                }`}>
+                                <span className={`pill cursor-pointer transition-all ${profileActive ? "pill--danger hover:!bg-danger/20" : "pill--success hover:!bg-success/20"}`}>
                                     <UserX className="h-3 w-3" />
                                     {profileActive ? "Suspend" : "Activate"}
                                 </span>
@@ -198,9 +180,8 @@ function UserRow({ entry, sessionToken }: { entry: { user: { _id: string; email:
                         variant="warning"
                         onConfirm={() => revokeSessions({ sessionToken, userId: u._id as never })}
                         trigger={
-                            <span className="inline-flex items-center gap-1 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider border-2 border-amber-500/50 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 cursor-pointer transition-all">
-                                <UserX className="h-3 w-3" />
-                                Logout
+                            <span className="pill pill--warning cursor-pointer hover:!bg-warning/20 transition-all">
+                                <UserX className="h-3 w-3" /> Logout
                             </span>
                         }
                     />

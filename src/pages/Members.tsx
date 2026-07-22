@@ -3,18 +3,18 @@ import { useQuery, useMutation } from "convex/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
-  Users,
-  UserPlus,
-  Search,
-  Phone,
-  CalendarDays,
-  ChevronRight,
-  Ticket,
-  Copy,
-  RefreshCw,
-  Ban,
-  X,
-  Check,
+    Users,
+    UserPlus,
+    Search,
+    Phone,
+    CalendarDays,
+    ChevronRight,
+    Ticket,
+    Copy,
+    RefreshCw,
+    Ban,
+    X,
+    Check,
 } from "lucide-react";
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
@@ -55,24 +55,14 @@ export default function Members() {
     if (!sessionToken) return;
     setError(null);
     try {
-      const result = await createMember({
-        sessionToken,
-        firstName,
-        lastName,
-        phone,
-      });
+      const result = await createMember({ sessionToken, firstName, lastName, phone });
       setInvitationCode(result.invitationCode);
       setFirstName("");
       setLastName("");
       setPhone("");
       setModal("show-code");
     } catch (err: unknown) {
-      setError(
-        toDisplayError(err, {
-          title: "Invite failed",
-          fallbackMessage: "Could not make the invite. Try again.",
-        })
-      );
+      setError(toDisplayError(err, { title: "Invite failed", fallbackMessage: "Could not make the invite. Try again." }));
     }
   };
 
@@ -88,12 +78,7 @@ export default function Members() {
     try {
       await revokeInvitation({ invitationId, sessionToken });
     } catch (err: unknown) {
-      setError(
-        toDisplayError(err, {
-          title: "Cancel failed",
-          fallbackMessage: "Could not cancel this invite. Try again.",
-        })
-      );
+      setError(toDisplayError(err, { title: "Cancel failed", fallbackMessage: "Could not cancel this invite. Try again." }));
     }
   };
 
@@ -104,101 +89,81 @@ export default function Members() {
       setInvitationCode(result.invitationCode);
       setModal("show-code");
     } catch (err: unknown) {
-      setError(
-        toDisplayError(err, {
-          title: "Could not make new code",
-          fallbackMessage: "Could not make a new code. Try again.",
-        })
-      );
+      setError(toDisplayError(err, { title: "Could not make new code", fallbackMessage: "Could not make a new code. Try again." }));
     }
   };
 
+  const pendingCount = (invitations ?? []).filter((inv) => inv.status === "pending").length;
+
   return (
-    <div className="space-y-6 font-['Outfit']">
-      <motion.section
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)]"
-      >
-        <div className="p-6 border-b-4 border-theme-strong bg-theme-sidebar flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 border-2 border-theme-strong bg-sidebar text-[#ccff00] flex items-center justify-center">
+    <div className="space-y-5">
+      <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="card overflow-hidden">
+        <div className="p-5 md:p-6 border-b border-theme flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3.5">
+            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-accent/15 text-accent-light">
               <Users className="h-6 w-6" />
-            </div>
+            </span>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-700">Members</p>
-              <h1 className="text-2xl md:text-3xl font-black uppercase font-['Syncopate']">Member List</h1>
+              <span className="eyebrow">Directory</span>
+              <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mt-1">Members</h1>
             </div>
           </div>
-          <button
-            onClick={() => {
-              setModal("invite");
-              setError(null);
-            }}
-            className="h-11 px-4 border-2 border-theme-strong bg-black text-white text-xs font-black uppercase tracking-widest hover:bg-theme-raised hover:text-theme transition-colors inline-flex items-center gap-2"
-          >
+          <button onClick={() => { setModal("invite"); setError(null); }} className="btn btn--primary btn--md">
             <UserPlus className="h-4 w-4" />
             Invite member
           </button>
         </div>
 
-        <div className="p-4 border-b-4 border-theme-strong bg-theme-sidebar">
+        <div className="p-4 border-b border-theme">
           <div className="relative">
-            <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-theme-muted" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search name or phone"
-              className="w-full h-11 border-2 border-theme-strong pl-10 pr-3 text-sm font-bold"
+              className="field !pl-11 !rounded-xl"
             />
           </div>
         </div>
 
+        {/* Desktop table */}
         <div className="overflow-x-auto hidden md:block">
           <table className="w-full min-w-[720px]">
             <thead>
-              <tr className="border-b-2 border-theme-strong text-left text-[11px] font-black uppercase tracking-[0.18em] text-theme-muted">
-                <th className="px-4 py-3">Member</th>
-                <th className="px-4 py-3">Contact</th>
-                <th className="px-4 py-3">Joined</th>
-                <th className="px-4 py-3 text-right">View</th>
+              <tr className="border-b border-theme text-left">
+                <th className="px-5 py-3.5 eyebrow">Member</th>
+                <th className="px-5 py-3.5 eyebrow">Contact</th>
+                <th className="px-5 py-3.5 eyebrow">Joined</th>
+                <th className="px-5 py-3.5 eyebrow text-right">View</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[var(--border)]">
               {!filtered || filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-16 text-center text-theme-muted font-black uppercase tracking-wider">
-                    {members === undefined ? "Loading..." : "No members found"}
+                  <td colSpan={4} className="py-16 text-center eyebrow">
+                    {members === undefined ? "Loading…" : "No members found"}
                   </td>
                 </tr>
               ) : (
-                filtered.map((member) => (
-                  <MemberRow key={member._id} member={member} />
-                ))
+                filtered.map((member) => <MemberRow key={member._id} member={member} />)
               )}
             </tbody>
           </table>
         </div>
 
-        {/* Mobile card view */}
-        <div className="md:hidden divide-y-2 divide-black">
+        {/* Mobile cards */}
+        <div className="md:hidden divide-y divide-[var(--border)]">
           {!filtered || filtered.length === 0 ? (
-            <div className="py-16 text-center text-theme-muted font-black uppercase tracking-wider">
-              {members === undefined ? "Loading..." : "No members found"}
-            </div>
+            <div className="py-16 text-center eyebrow">{members === undefined ? "Loading…" : "No members found"}</div>
           ) : (
             filtered.map((member) => (
-              <Link
-                key={member._id}
-                to={`/members/${member._id}`}
-                className="flex items-center gap-3 p-4 hover:bg-[#ccff00]/10 transition-colors"
-              >
-                <div className="h-10 w-10 border-2 border-theme-strong bg-black text-[#ccff00] font-black text-xs flex items-center justify-center shrink-0">
+              <Link key={member._id} to={`/members/${member._id}`} className="flex items-center gap-3 p-4 hover:bg-hover transition-colors">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-accent/12 text-accent-light font-bold text-xs shrink-0">
                   {member.firstName[0]}{member.lastName[0]}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black uppercase text-sm">{member.firstName} {member.lastName}</p>
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-600">{member.phone}</p>
+                  <p className="font-semibold truncate">{member.firstName} {member.lastName}</p>
+                  <p className="text-xs text-theme-muted">{member.phone}</p>
                 </div>
                 <ChevronRight className="h-5 w-5 text-theme-muted" />
               </Link>
@@ -207,29 +172,30 @@ export default function Members() {
         </div>
       </motion.section>
 
-      <section className="border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)] overflow-hidden">
-        <div className="p-4 border-b-4 border-theme-strong bg-sidebar text-black flex items-center justify-between">
-          <p className="text-xs font-black uppercase tracking-[0.2em]">Invites</p>
-          <p className="text-[10px] md:text-xs font-black uppercase">{(invitations ?? []).filter((inv) => inv.status === "pending").length} waiting</p>
+      {/* Invites */}
+      <section className="card overflow-hidden">
+        <div className="p-4 border-b border-theme flex items-center justify-between">
+          <p className="eyebrow">Pending invites</p>
+          <span className="pill pill--accent">{pendingCount} waiting</span>
         </div>
         {!invitations || invitations.length === 0 ? (
-          <div className="p-10 text-center text-theme-muted font-black uppercase tracking-wider">No invites yet</div>
+          <div className="p-10 text-center eyebrow">No invites yet</div>
         ) : (
-          <div className="divide-y divide-black/10">
+          <div className="divide-y divide-[var(--border)]">
             {invitations.slice(0, 8).map((inv) => (
-              <div key={inv._id} className="p-3 md:p-4 flex items-center gap-2 md:gap-3">
+              <div key={inv._id} className="p-4 flex items-center gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="font-black uppercase text-sm truncate">{inv.firstName} {inv.lastName}</p>
-                  <p className="text-[10px] md:text-xs font-bold uppercase text-theme-muted tracking-wider">{inv.code}</p>
+                  <p className="font-semibold truncate">{inv.firstName} {inv.lastName}</p>
+                  <p className="text-xs text-theme-muted font-mono mt-0.5">{inv.code}</p>
                 </div>
-                <span className="px-2 py-1 border border-theme-strong text-[9px] md:text-[10px] font-black uppercase tracking-wider">{inv.status}</span>
-                <div className="flex gap-1 md:gap-0">
-                  <button onClick={() => copyCode(inv.code)} className="h-7 w-7 md:h-8 md:w-8 border-2 border-theme-strong flex items-center justify-center"><Copy className="h-3 w-3 md:h-4 md:w-4" /></button>
+                <span className={`pill ${inv.status === "pending" ? "pill--warning" : inv.status === "claimed" ? "pill--success" : ""}`}>{inv.status}</span>
+                <div className="flex gap-1.5">
+                  <button onClick={() => copyCode(inv.code)} className="grid h-8 w-8 place-items-center rounded-lg border border-theme hover:bg-hover transition-colors"><Copy className="h-3.5 w-3.5" /></button>
                   {inv.status !== "claimed" && (
-                    <button onClick={() => handleRegenerate(inv._id)} className="h-7 w-7 md:h-8 md:w-8 border-2 border-theme-strong flex items-center justify-center"><RefreshCw className="h-3 w-3 md:h-4 md:w-4" /></button>
+                    <button onClick={() => handleRegenerate(inv._id)} className="grid h-8 w-8 place-items-center rounded-lg border border-theme hover:bg-hover transition-colors"><RefreshCw className="h-3.5 w-3.5" /></button>
                   )}
                   {inv.status === "pending" && (
-                    <button onClick={() => handleRevoke(inv._id)} className="h-7 w-7 md:h-8 md:w-8 border-2 border-theme-strong flex items-center justify-center"><Ban className="h-3 w-3 md:h-4 md:w-4" /></button>
+                    <button onClick={() => handleRevoke(inv._id)} className="grid h-8 w-8 place-items-center rounded-lg border border-theme hover:bg-danger/10 hover:text-danger hover:border-danger/40 transition-colors"><Ban className="h-3.5 w-3.5" /></button>
                   )}
                 </div>
               </div>
@@ -241,47 +207,48 @@ export default function Members() {
       <AnimatePresence>
         {modal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/55" onClick={() => setModal(null)} />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setModal(null)} />
             <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 14 }}
+              initial={{ opacity: 0, scale: 0.95, y: 14 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 14 }}
-              className="relative w-full max-w-md border-4 border-theme-strong bg-theme-raised shadow-[4px_4px_0px_0px_var(--border-strong)] mx-4"
+              exit={{ opacity: 0, scale: 0.95, y: 14 }}
+              transition={{ type: "spring", stiffness: 300, damping: 26 }}
+              className="relative glass-strong rounded-3xl w-full max-w-md mx-4 overflow-hidden"
             >
-              <div className="p-3 md:p-4 border-b-4 border-theme-strong bg-black text-white flex items-center justify-between">
-                <p className="text-xs md:text-sm font-black uppercase tracking-widest">{modal === "invite" ? "Invite member" : "Invite code"}</p>
-                <button onClick={() => setModal(null)} className="h-7 w-7 md:h-8 md:w-8 border-2 border-white flex items-center justify-center"><X className="h-3 w-3 md:h-4 md:w-4" /></button>
+              <div className="px-5 py-4 border-b border-theme flex items-center justify-between">
+                <p className="font-bold tracking-tight">{modal === "invite" ? "Invite member" : "Invite code"}</p>
+                <button onClick={() => setModal(null)} className="grid h-8 w-8 place-items-center rounded-lg border border-theme hover:bg-hover transition-colors"><X className="h-4 w-4" /></button>
               </div>
-              <div className="p-4 md:p-5">
+              <div className="p-5">
                 {error && <DetailedErrorPanel error={error} className="mb-4" />}
 
                 {modal === "invite" && (
                   <form onSubmit={handleInvite} className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
-                      <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" required className="h-10 border-2 border-theme-strong px-3 text-sm font-bold" />
-                      <input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last name" required className="h-10 border-2 border-theme-strong px-3 text-sm font-bold" />
+                      <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" required className="field" />
+                      <input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last name" required className="field" />
                     </div>
                     <div className="relative">
-                      <Phone className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone" required className="h-10 w-full border-2 border-theme-strong pl-10 pr-3 text-sm font-bold" />
+                      <Phone className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-theme-muted" />
+                      <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone" required className="field !pl-10" />
                     </div>
-                    <button type="submit" className="h-10 w-full border-2 border-theme-strong bg-[#ccff00] text-theme text-xs font-black uppercase tracking-widest">Make invite</button>
+                    <button type="submit" className="btn btn--primary btn--md w-full">Make invite</button>
                   </form>
                 )}
 
                 {modal === "show-code" && (
                   <div className="space-y-4">
-                    <div className="p-4 border-2 border-theme-strong bg-theme-sidebar">
-                      <p className="text-xs font-black uppercase tracking-wider text-theme-muted">Give them this code</p>
-                      <div className="mt-2 flex items-center gap-2 p-2 border-2 border-theme-strong bg-theme-raised">
-                        <Ticket className="h-4 w-4" />
-                        <code className="flex-1 font-black text-sm">{invitationCode}</code>
-                        <button onClick={() => copyCode(invitationCode)} className="h-8 w-8 border-2 border-theme-strong flex items-center justify-center">
-                          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    <div className="rounded-2xl border border-theme bg-hover p-4">
+                      <p className="eyebrow">Give them this code</p>
+                      <div className="mt-2.5 flex items-center gap-2 p-2.5 rounded-xl border border-theme bg-bg-raised">
+                        <Ticket className="h-4 w-4 text-accent-light" />
+                        <code className="flex-1 font-mono font-bold">{invitationCode}</code>
+                        <button onClick={() => copyCode(invitationCode)} className="grid h-8 w-8 place-items-center rounded-lg border border-theme hover:bg-hover transition-colors">
+                          {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
                         </button>
                       </div>
                     </div>
-                    <button onClick={() => setModal(null)} className="h-10 w-full border-2 border-theme-strong bg-black text-white text-xs font-black uppercase tracking-widest">Done</button>
+                    <button onClick={() => setModal(null)} className="btn btn--ghost btn--md w-full">Done</button>
                   </div>
                 )}
               </div>
@@ -295,23 +262,23 @@ export default function Members() {
 
 function MemberRow({ member }: { member: Doc<"members"> }) {
   return (
-    <tr className="border-b border-theme-strong/10 hover:bg-theme-sidebar">
-      <td className="px-4 py-3">
+    <tr className="hover:bg-hover transition-colors">
+      <td className="px-5 py-3.5">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 border-2 border-theme-strong bg-black text-[#ccff00] font-black text-xs flex items-center justify-center">
+          <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent/12 text-accent-light font-bold text-xs">
             {member.firstName[0]}{member.lastName[0]}
           </div>
-          <p className="font-black uppercase text-sm">{member.firstName} {member.lastName}</p>
+          <p className="font-semibold">{member.firstName} {member.lastName}</p>
         </div>
       </td>
-      <td className="px-4 py-3">
-        <p className="text-xs font-bold uppercase tracking-wider text-slate-600 inline-flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" />{member.phone}</p>
+      <td className="px-5 py-3.5">
+        <p className="text-sm text-theme-secondary inline-flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" />{member.phone}</p>
       </td>
-      <td className="px-4 py-3">
-        <p className="text-xs font-bold uppercase tracking-wider text-slate-600 inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" />{formatDate(member.joinedAt)}</p>
+      <td className="px-5 py-3.5">
+        <p className="text-sm text-theme-secondary inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" />{formatDate(member.joinedAt)}</p>
       </td>
-      <td className="px-4 py-3 text-right">
-        <Link to={`/members/${member._id}`} className="h-8 w-8 border-2 border-theme-strong inline-flex items-center justify-center bg-theme-raised hover:bg-[#ccff00] transition-colors">
+      <td className="px-5 py-3.5 text-right">
+        <Link to={`/members/${member._id}`} className="inline-grid h-8 w-8 place-items-center rounded-lg border border-theme hover:bg-hover-accent hover:text-accent-light transition-colors">
           <ChevronRight className="h-4 w-4" />
         </Link>
       </td>
