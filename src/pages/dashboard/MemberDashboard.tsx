@@ -21,11 +21,11 @@ import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 const motivationalQuotes = [
-    { text: "Have a great workout.", author: "KINETIC HQ" },
-    { text: "Stay consistent.", author: "KINETIC HQ" },
-    { text: "Keep going.", author: "KINETIC HQ" },
-    { text: "You got this.", author: "KINETIC HQ" },
-    { text: "Do your best.", author: "KINETIC HQ" },
+    { text: "Have a great workout.", author: "Flowtech" },
+    { text: "Stay consistent.", author: "Flowtech" },
+    { text: "Keep going.", author: "Flowtech" },
+    { text: "You got this.", author: "Flowtech" },
+    { text: "Do your best.", author: "Flowtech" },
 ];
 
 function getDailyMotivation() {

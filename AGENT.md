@@ -1,4 +1,4 @@
-# KINETIC Gym — Development Guide
+# Flowtech Gym — Development Guide
 
 ## Tech Stack
 

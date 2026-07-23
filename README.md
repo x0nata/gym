@@ -1,8 +1,8 @@
-# ⚡ KINETIC — Gym Management Platform
+# ⚡ Flowtech — Gym Management Platform
 
 <div align="center">
 
-![KINETIC](https://img.shields.io/badge/KINETIC-Gym%20Management%20Platform-ccff00?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSIjY2NmZjAwIi8+Cjwvc3ZnPgo=)
+![Flowtech](https://img.shields.io/badge/Flowtech-Gym%20Management%20Platform-ccff00?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSIjY2NmZjAwIi8+Cjwvc3ZnPgo=)
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
 [![Convex](https://img.shields.io/badge/Convex-Backend-DC143C?style=for-the-badge)](https://convex.dev/)
@@ -76,7 +76,7 @@
 ### 🏗️ Project Structure
 
 ```
-📦 KINETIC Gym
+📦 Flowtech Gym
 ├── 🎨 src/                   # React Frontend
 │   ├──  components/         # Reusable UI components
 │   ├──  pages/              # Page components

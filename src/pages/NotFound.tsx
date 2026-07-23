@@ -13,7 +13,7 @@ export default function NotFound() {
             >
                 <Link to="/" className="inline-flex items-center gap-2.5 mb-8">
                     <Mark />
-                    <span className="brand-mark text-sm">KINETIC</span>
+                    <span className="brand-mark text-sm">FLOWTECH</span>
                 </Link>
                 <h1 className="text-7xl md:text-8xl font-extrabold tracking-tight leading-none text-energy">404</h1>
                 <p className="mt-4 text-base text-theme-secondary">This page took a rest day.</p>

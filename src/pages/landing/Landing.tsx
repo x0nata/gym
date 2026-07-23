@@ -14,7 +14,7 @@ export default function Landing() {
       {/* Navigation */}
       <nav className="relative z-10 flex justify-between items-center px-4 md:px-6 py-3 md:py-4 border-b-4 border-theme-strong font-black uppercase tracking-widest text-xs md:text-sm">
         <div className="flex items-center gap-2 text-lg md:text-2xl">
-          <Zap className="text-[#ccff00] fill-black w-5 h-5 md:w-6 md:h-6" /> KINETIC
+          <Zap className="text-[#ccff00] fill-black w-5 h-5 md:w-6 md:h-6" /> FLOWTECH
         </div>
         <div className="flex gap-3 md:gap-8 items-center text-theme">
           <button

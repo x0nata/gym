@@ -142,7 +142,7 @@ export default function UnifiedAuth() {
 
         <Link to="/" className="relative flex items-center gap-2.5 group w-fit">
           <Mark />
-          <span className="brand-mark text-sm text-theme">KINETIC</span>
+          <span className="brand-mark text-sm text-theme">FLOWTECH</span>
         </Link>
 
         <motion.div
@@ -173,7 +173,7 @@ export default function UnifiedAuth() {
       <div className="flex-1 flex flex-col items-center justify-center p-5 md:p-12 relative">
         <div className="md:hidden w-full max-w-md flex items-center gap-2.5 mb-8">
           <Mark />
-          <span className="brand-mark text-sm text-theme">KINETIC</span>
+          <span className="brand-mark text-sm text-theme">FLOWTECH</span>
         </div>
 
         <div className="w-full max-w-md">

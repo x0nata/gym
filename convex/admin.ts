@@ -450,3 +450,30 @@ export const bootstrapSuperadmin = mutation({
     return { success: true, name, email };
   },
 });
+
+export const resetSuperadminPassword = mutation({
+  args: {
+    email: v.string(),
+    password: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const email = normalizeEmail(args.email);
+    if (args.password.length < 8) throw new ConvexError({ code: "WEAK_PASSWORD", message: "Password must be at least 8 characters." });
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+
+    if (!user || user.role !== "superadmin") {
+      throw new ConvexError({ code: "NOT_FOUND", message: "No superadmin found with that email." });
+    }
+
+    await ctx.db.patch(user._id, {
+      passwordHash: hashPassword(args.password),
+    });
+
+    return { success: true, email };
+  },
+});
+

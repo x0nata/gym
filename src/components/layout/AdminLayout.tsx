@@ -64,7 +64,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                         <Link to="/admin" className="flex items-center gap-3 group" onClick={() => setSidebarOpen(false)}>
                             <Mark />
                             <div className="leading-none">
-                                <div className="brand-mark text-[0.95rem] text-theme">KINETIC</div>
+                                <div className="brand-mark text-[0.95rem] text-theme">FLOWTECH</div>
                                 <div className="eyebrow mt-1.5 text-energy">Admin</div>
                             </div>
                         </Link>
@@ -148,7 +148,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                         </button>
                         <div className="flex items-center gap-2 lg:hidden">
                             <Mark />
-                            <span className="brand-mark text-xs text-theme">KINETIC</span>
+                            <span className="brand-mark text-xs text-theme">FLOWTECH</span>
                         </div>
                         <h1 className="hidden lg:block text-xl font-extrabold tracking-tight text-theme">{activeLabel}</h1>
                     </div>

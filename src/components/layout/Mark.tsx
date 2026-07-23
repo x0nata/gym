@@ -5,7 +5,7 @@ export function Mark() {
         style={{ fontFamily: `var(--font-sans)`, color: "#07120f", fontWeight: 800 }}
         className="text-base leading-none"
       >
-        K
+        F
       </span>
     </span>
   );

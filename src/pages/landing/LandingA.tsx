@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowUpRight } from "lucide-react";
+import { Sun, Moon, ArrowUpRight } from "lucide-react";
 import { Mark } from "../../components/layout/Mark";
+import { useTheme } from "../../lib/useTheme";
 
 const lines = [
   { n: "01", h: "Check-ins in a second", b: "Scan, snap, or type a code. The door opens before the desk blinks." },
@@ -20,6 +21,8 @@ const stats: [string, string][] = [
 ];
 
 export default function Landing() {
+  const { theme, toggleTheme } = useTheme();
+
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: "var(--bg)", color: "var(--text)" }}>
       <div
@@ -34,12 +37,20 @@ export default function Landing() {
       <nav className="relative z-20 px-4 md:px-10 py-5 flex items-center justify-between">
         <a href="/" className="inline-flex items-center gap-3">
           <Mark />
-          <span className="brand-mark text-sm">KINETIC</span>
+          <span className="brand-mark text-sm">FLOWTECH</span>
           <span className="hidden sm:inline text-theme-muted text-[0.7rem] tracking-[0.16em] uppercase border-l pl-3 border-theme">
             Gym ops platform
           </span>
         </a>
         <div className="flex items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            className="grid h-9 w-9 place-items-center rounded-xl border transition-colors text-theme-secondary hover:text-theme hover:bg-hover"
+            style={{ borderColor: "var(--border)" }}
+            aria-label="Switch theme"
+          >
+            {theme === "dark" ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+          </button>
           <Link to="/auth/user" className="btn btn--ghost btn--sm hidden sm:inline-flex">
             Member
           </Link>
