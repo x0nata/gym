@@ -192,21 +192,40 @@ export default function MemberDetail() {
                                 value={planName}
                                 onChange={(e) => {
                                     setPlanName(e.target.value);
-                                    const map: Record<string, number> = { Monthly: 30, Quarterly: 90, "Semi-Annual": 180, Annual: 365 };
-                                    setDurationDays(map[e.target.value] || 30);
+                                    if (e.target.value !== "Custom") {
+                                        const map: Record<string, number> = { Monthly: 30, Quarterly: 90, "Semi-Annual": 180, Annual: 365 };
+                                        setDurationDays(map[e.target.value] || 30);
+                                    }
                                 }}
                             >
                                 <option value="Monthly">Monthly (30 days)</option>
                                 <option value="Quarterly">Quarterly (90 days)</option>
                                 <option value="Semi-Annual">Semi-Annual (180 days)</option>
                                 <option value="Annual">Annual (365 days)</option>
+                                <option value="Custom">Custom</option>
                             </select>
                         </div>
-                        <div className="space-y-1.5">
-                            <label className="eyebrow">Amount (ETB)</label>
-                            <input className="field" type="number" min={0} value={amountPaid} onChange={(e) => setAmountPaid(Number(e.target.value))} />
-                        </div>
-                        <button type="submit" className="btn btn--primary btn--md">Activate</button>
+                        {planName === "Custom" ? (
+                            <>
+                                <div className="space-y-1.5">
+                                    <label className="eyebrow">Duration (days)</label>
+                                    <input className="field" type="number" min={1} value={durationDays} onChange={(e) => setDurationDays(Math.max(1, Number(e.target.value)))} />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="eyebrow">Amount (ETB)</label>
+                                    <input className="field" type="number" min={0} value={amountPaid} onChange={(e) => setAmountPaid(Number(e.target.value))} />
+                                </div>
+                                <button type="submit" className="btn btn--primary btn--md">Activate</button>
+                            </>
+                        ) : (
+                            <div className="contents">
+                                <div className="space-y-1.5">
+                                    <label className="eyebrow">Amount (ETB)</label>
+                                    <input className="field" type="number" min={0} value={amountPaid} onChange={(e) => setAmountPaid(Number(e.target.value))} />
+                                </div>
+                                <button type="submit" className="btn btn--primary btn--md">Activate</button>
+                            </div>
+                        )}
                     </div>
                 </form>
             )}
