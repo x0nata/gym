@@ -1,54 +1,68 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, type MutationCtx } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 import { ensureSameGym, requireGymUser, requireMemberUser } from "./lib/session";
 import type { Doc } from "./_generated/dataModel";
+
+async function resolveCheckInTarget(
+  ctx: MutationCtx,
+  qrCode: string,
+  gymId: Doc<"users">["gymId"],
+  asOf = Date.now()
+): Promise<{ member: Doc<"members">; activeMembership: Doc<"memberships"> }> {
+  const member = (await ctx.db
+    .query("members")
+    .withIndex("by_qrCode", (q) => q.eq("qrCode", qrCode))
+    .first()) as Doc<"members"> | null;
+
+  if (!member || member.gymId !== gymId) {
+    throw new ConvexError({
+      code: "MEMBER_NOT_FOUND",
+      message: "No member found with this code",
+    });
+  }
+
+  if (!member.isActive) {
+    throw new ConvexError({
+      code: "MEMBER_INACTIVE",
+      message: `${member.firstName} ${member.lastName} is inactive`,
+    });
+  }
+
+  const activeMembership = await ctx.db
+    .query("memberships")
+    .withIndex("by_member_status", (q) => q.eq("memberId", member._id).eq("status", "active"))
+    .first();
+
+  if (!activeMembership) {
+    throw new ConvexError({
+      code: "NO_ACTIVE_MEMBERSHIP",
+      message: `${member.firstName} ${member.lastName} has no active plan. Payment required.`,
+    });
+  }
+
+  if (activeMembership.endDate < asOf) {
+    await ctx.db.patch(activeMembership._id, { status: "expired" });
+    throw new ConvexError({
+      code: "MEMBERSHIP_EXPIRED",
+      message: `${member.firstName} ${member.lastName}'s plan has expired. Renew now.`,
+    });
+  }
+
+  return { member, activeMembership };
+}
+
+function toDateKey(timestamp: number): string {
+  return new Date(timestamp).toISOString().split("T")[0];
+}
 
 export const scanAndCheckIn = mutation({
   args: { qrCode: v.string(), sessionToken: v.string() },
   handler: async (ctx, args) => {
     const gymUser = await requireGymUser(ctx, args.sessionToken);
-
-    const member = (await ctx.db
-      .query("members")
-      .withIndex("by_qrCode", (q) => q.eq("qrCode", args.qrCode))
-      .first()) as Doc<"members"> | null;
-
-    if (!member || member.gymId !== gymUser.gymId) {
-      throw new ConvexError({
-        code: "MEMBER_NOT_FOUND",
-        message: "No member found with this code",
-      });
-    }
-
-    if (!member.isActive) {
-      throw new ConvexError({
-        code: "MEMBER_INACTIVE",
-        message: `${member.firstName} ${member.lastName} is inactive`,
-      });
-    }
-
-    const activeMembership = await ctx.db
-      .query("memberships")
-      .withIndex("by_member_status", (q) => q.eq("memberId", member._id).eq("status", "active"))
-      .first();
-
-    if (!activeMembership) {
-      throw new ConvexError({
-        code: "NO_ACTIVE_MEMBERSHIP",
-        message: `${member.firstName} ${member.lastName} has no active plan. Payment required.`,
-      });
-    }
+    const { member, activeMembership } = await resolveCheckInTarget(ctx, args.qrCode, gymUser.gymId);
 
     const now = Date.now();
-    if (activeMembership.endDate < now) {
-      await ctx.db.patch(activeMembership._id, { status: "expired" });
-      throw new ConvexError({
-        code: "MEMBERSHIP_EXPIRED",
-        message: `${member.firstName} ${member.lastName}'s plan has expired. Renew now.`,
-      });
-    }
-
-    const today = new Date().toISOString().split("T")[0];
+    const today = toDateKey(now);
 
     const existingCheckIn = await ctx.db
       .query("checkIns")
@@ -112,6 +126,113 @@ export const scanAndCheckIn = mutation({
       membership: activeMembership,
       checkInTime: now,
       daysRemaining,
+    };
+  },
+});
+
+export const syncOfflineCheckIn = mutation({
+  args: {
+    sessionToken: v.string(),
+    qrCode: v.string(),
+    timestamp: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const gymUser = await requireGymUser(ctx, args.sessionToken);
+    const { member, activeMembership } = await resolveCheckInTarget(
+      ctx,
+      args.qrCode,
+      gymUser.gymId,
+      args.timestamp
+    );
+
+    const date = toDateKey(args.timestamp);
+
+    const existingCheckIn = await ctx.db
+      .query("checkIns")
+      .withIndex("by_member_date", (q) => q.eq("memberId", member._id).eq("date", date))
+      .first();
+
+    if (existingCheckIn) {
+      return {
+        status: "already_checked_in",
+        member,
+        membership: activeMembership,
+        checkInTime: existingCheckIn.timestamp,
+      };
+    }
+
+    await ctx.db.insert("checkIns", {
+      memberId: member._id,
+      timestamp: args.timestamp,
+      date,
+    });
+
+    await ctx.db.insert("notifications", {
+      memberId: member._id,
+      type: "check_in",
+      title: "Member Checked In",
+      message: `${member.firstName} ${member.lastName} checked in at ${new Date(args.timestamp).toLocaleTimeString()}`,
+      isRead: false,
+      createdAt: args.timestamp,
+      audience: "gym",
+    });
+
+    const daysRemaining = Math.ceil((activeMembership.endDate - args.timestamp) / (24 * 60 * 60 * 1000));
+
+    return {
+      status: "checked_in",
+      member,
+      membership: activeMembership,
+      checkInTime: args.timestamp,
+      daysRemaining,
+    };
+  },
+});
+
+export const getOfflineSnapshot = query({
+  args: { sessionToken: v.string() },
+  handler: async (ctx, args) => {
+    const gymUser = await requireGymUser(ctx, args.sessionToken);
+
+    const members = (await ctx.db
+      .query("members")
+      .withIndex("by_gymId", (q) => q.eq("gymId", gymUser.gymId!))
+      .collect()) as Doc<"members">[];
+    const memberIds = new Set(members.map((member) => member._id));
+
+    const memberships = await ctx.db.query("memberships").order("desc").collect();
+    const gymMemberships = memberships
+      .filter((membership) => memberIds.has(membership.memberId))
+      .map((membership) => ({
+        _id: membership._id,
+        memberId: membership.memberId,
+        planName: membership.planName,
+        startDate: membership.startDate,
+        endDate: membership.endDate,
+        status: membership.status,
+      }));
+
+    const today = toDateKey(Date.now());
+    const checkIns = await ctx.db
+      .query("checkIns")
+      .withIndex("by_date", (q) => q.eq("date", today))
+      .collect();
+    const todayCheckIns = checkIns
+      .filter((checkIn) => memberIds.has(checkIn.memberId))
+      .map((checkIn) => ({ memberId: checkIn.memberId, timestamp: checkIn.timestamp, date: checkIn.date }));
+
+    return {
+      syncedAt: Date.now(),
+      members: members.map((member) => ({
+        _id: member._id,
+        qrCode: member.qrCode,
+        firstName: member.firstName,
+        lastName: member.lastName,
+        isActive: member.isActive,
+        gymId: member.gymId,
+      })),
+      memberships: gymMemberships,
+      todayCheckIns,
     };
   },
 });

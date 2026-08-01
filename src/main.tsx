@@ -7,7 +7,10 @@ import { ThemeProvider } from "./lib/useTheme";
 import { AuthProvider } from "./lib/useAuth";
 import App from "./App";
 import { AppErrorBoundary } from "./components/feedback/AppErrorBoundary";
+import { registerSW } from "virtual:pwa-register";
 import "./index.css";
+
+registerSW({ immediate: true });
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 

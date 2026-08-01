@@ -1,14 +1,25 @@
-import { useState, useCallback, useRef } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useQuery, useMutation, useConvex } from "convex/react";
 import { motion } from "framer-motion";
-import { ScanLine, Camera, Keyboard, Search, CheckCircle2, AlertTriangle, XCircle, Clock3, Scan, ImageUp, Loader2 } from "lucide-react";
+import { ScanLine, Camera, Keyboard, Search, CheckCircle2, AlertTriangle, XCircle, Clock3, Scan, ImageUp, Loader2, WifiOff, CloudUpload } from "lucide-react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../lib/useAuth";
-import { formatDate, formatDateTime } from "../lib/utils";
+import { formatDate, formatDateTime, formatTimeAgo } from "../lib/utils";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { toDisplayError, type AppErrorDetails } from "../lib/errorHandling";
 import { DetailedErrorPanel } from "../components/feedback/DetailedErrorPanel";
 import { useQrScanner, scanImageFile } from "../lib/useQrScanner";
+import { useOnlineStatus } from "../lib/useOnlineStatus";
+import {
+    tryOfflineCheckIn,
+    getTodayCheckIns,
+    getPendingCount,
+    getCacheSyncedAt,
+    loadPendingCheckIns,
+    removeResolvedPending,
+    saveOfflineCache,
+    type OfflineCheckInResult,
+} from "../lib/offlineCheckIn";
 
 type ScanResult = {
     status: "checked_in" | "already_checked_in" | "error";
@@ -18,13 +29,59 @@ type ScanResult = {
     daysRemaining?: number;
     message?: string;
     errorDetails?: AppErrorDetails;
+    pendingSync?: boolean;
 };
+
+type TodayRow = {
+    _id: string;
+    timestamp: number;
+    pending: boolean;
+    member: { firstName: string; lastName: string; qrCode: string };
+};
+
+const STALE_CACHE_MS = 12 * 60 * 60 * 1000;
+
+const REJECTED_ON_SYNC_CODES = new Set([
+    "MEMBER_NOT_FOUND",
+    "MEMBER_INACTIVE",
+    "NO_ACTIVE_MEMBERSHIP",
+    "MEMBERSHIP_EXPIRED",
+]);
+
+function offlineResultToScan(res: OfflineCheckInResult): ScanResult {
+    const base: ScanResult = {
+        status: res.status,
+        member: res.member as unknown as Doc<"members">,
+        membership: res.membership as unknown as Doc<"memberships">,
+        checkInTime: res.checkInTime,
+        daysRemaining: res.daysRemaining,
+        pendingSync: res.queued || res.pending,
+    };
+    if (res.status === "error") {
+        base.message = res.message;
+        base.errorDetails = {
+            title: "Check-in not allowed",
+            message: res.message ?? "Check-in failed.",
+            code: res.code,
+        };
+    }
+    return base;
+}
 
 export default function ScanQR() {
     const { user } = useAuth();
     const sessionToken = user?.sessionToken;
+    const convex = useConvex();
     const todayCheckIns = useQuery(api.checkIns.getToday, sessionToken ? { sessionToken } : "skip");
     const checkIn = useMutation(api.checkIns.scanAndCheckIn);
+    const syncCheckIn = useMutation(api.checkIns.syncOfflineCheckIn);
+    const isOnline = useOnlineStatus();
+
+    const [pendingCount, setPendingCount] = useState(getPendingCount);
+    const [cacheSyncedAt, setCacheSyncedAt] = useState<number | null>(getCacheSyncedAt);
+    const [syncing, setSyncing] = useState(false);
+    const [syncMessage, setSyncMessage] = useState<string | null>(null);
+    const [refreshTick, setRefreshTick] = useState(0);
 
     const [scannerMode, setScannerMode] = useState<"manual" | "camera" | "photo">("manual");
     const [manualCode, setManualCode] = useState("");
@@ -36,20 +93,117 @@ export default function ScanQR() {
     const [photoError, setPhotoError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const refreshSyncState = useCallback(() => {
+        setPendingCount(getPendingCount());
+        setCacheSyncedAt(getCacheSyncedAt());
+        setRefreshTick((t) => t + 1);
+    }, []);
+
+    const refreshOfflineCache = useCallback(async () => {
+        if (!sessionToken) return;
+        try {
+            const snapshot = await convex.query(api.checkIns.getOfflineSnapshot, { sessionToken });
+            saveOfflineCache(snapshot);
+        } catch {
+            // offline or unauthorized – keep the last known cache
+        } finally {
+            refreshSyncState();
+        }
+    }, [convex, sessionToken, refreshSyncState]);
+
+    const syncPending = useCallback(async () => {
+        if (!sessionToken || !isOnline) return;
+        const pending = loadPendingCheckIns();
+        if (pending.length === 0) return;
+
+        setSyncing(true);
+        setSyncMessage(null);
+        let failed = 0;
+        let rejected = 0;
+
+        for (const item of pending) {
+            try {
+                await syncCheckIn({ sessionToken, qrCode: item.qrCode, timestamp: item.timestamp });
+                removeResolvedPending(item.clientId);
+            } catch (err) {
+                const details = toDisplayError(err, { title: "Sync failed", fallbackMessage: "Couldn't sync a check-in." });
+                if (details.code === "UNAUTHORIZED" || details.code === "FORBIDDEN") {
+                    setSyncMessage("Session expired. Sign in again to sync pending check-ins.");
+                    break;
+                }
+                if (details.code && REJECTED_ON_SYNC_CODES.has(details.code)) {
+                    // Deterministic rejection (e.g. membership expired server-side while offline) –
+                    // retrying won't help, so drop it from the queue.
+                    removeResolvedPending(item.clientId);
+                    rejected += 1;
+                    continue;
+                }
+                failed += 1;
+            }
+        }
+
+        await refreshOfflineCache();
+        if (rejected > 0 && failed > 0) {
+            setSyncMessage(`${rejected} offline check-in(s) were rejected (e.g. membership expired). ${failed} couldn't sync and will retry.`);
+        } else if (rejected > 0) {
+            setSyncMessage(`${rejected} offline check-in(s) were rejected by the server (e.g. membership expired). Check with the member.`);
+        } else if (failed > 0) {
+            setSyncMessage(`${failed} check-in(s) couldn't sync. They'll retry automatically.`);
+        }
+        setSyncing(false);
+    }, [sessionToken, isOnline, syncCheckIn, refreshOfflineCache]);
+
+    useEffect(() => {
+        if (isOnline && sessionToken) {
+            void refreshOfflineCache();
+            void syncPending();
+        }
+    }, [isOnline, sessionToken, refreshOfflineCache, syncPending]);
+
+    const displayToday = useMemo<TodayRow[]>(() => {
+        void refreshTick;
+        if (isOnline && todayCheckIns) {
+            const serverRows: TodayRow[] = todayCheckIns.map((item) => ({
+                _id: item._id,
+                timestamp: item.timestamp,
+                pending: false,
+                member: { firstName: item.member.firstName, lastName: item.member.lastName, qrCode: item.member.qrCode },
+            }));
+            const serverQrCodes = new Set(serverRows.map((row) => row.member.qrCode));
+            const localRows = getTodayCheckIns().filter((row) => !serverQrCodes.has(row.member.qrCode));
+            return [...serverRows, ...localRows].sort((a, b) => b.timestamp - a.timestamp);
+        }
+        return getTodayCheckIns();
+    }, [isOnline, todayCheckIns, refreshTick]);
+
     const handleScan = useCallback(async (qrCode: string) => {
         if (!sessionToken) return;
         setScanning(true);
         setResult(null);
+
+        if (!isOnline) {
+            setResult(offlineResultToScan(tryOfflineCheckIn(qrCode)));
+            refreshSyncState();
+            setScanning(false);
+            return;
+        }
+
         try {
             const res = await checkIn({ qrCode, sessionToken });
             setResult(res as ScanResult);
         } catch (err: unknown) {
-            const details = toDisplayError(err, { title: "Check-in failed", fallbackMessage: "Scan failed. Try again." });
-            setResult({ status: "error", message: details.message, errorDetails: details });
+            const offlineRes = tryOfflineCheckIn(qrCode);
+            if (offlineRes.status === "checked_in" || offlineRes.status === "already_checked_in") {
+                setResult(offlineResultToScan(offlineRes));
+            } else {
+                const details = toDisplayError(err, { title: "Check-in failed", fallbackMessage: "Scan failed. Try again." });
+                setResult({ status: "error", message: details.message, errorDetails: details });
+            }
         } finally {
+            refreshSyncState();
             setScanning(false);
         }
-    }, [checkIn, sessionToken]);
+    }, [checkIn, sessionToken, isOnline, refreshSyncState]);
 
     const { error: cameraError, active: scannerActive } = useQrScanner({
         elementId: "scan-reader",
@@ -92,6 +246,10 @@ export default function ScanQR() {
     const resultTone = result?.status === "checked_in" ? "success" : result?.status === "already_checked_in" ? "warning" : "danger";
     const ResultIcon = result?.status === "checked_in" ? CheckCircle2 : result?.status === "already_checked_in" ? AlertTriangle : XCircle;
 
+    const offline = !isOnline;
+    const hasPending = pendingCount > 0;
+    const cacheStale = cacheSyncedAt !== null && Date.now() - cacheSyncedAt > STALE_CACHE_MS;
+
     return (
         <div className="space-y-5">
             <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="card overflow-hidden">
@@ -105,6 +263,53 @@ export default function ScanQR() {
                     </div>
                 </div>
             </motion.section>
+
+            {(offline || hasPending) && (
+                <motion.section
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`card p-4 md:p-5 ${offline ? "!border-warning/50 bg-warning/[0.04]" : ""}`}
+                >
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                            <span className={`grid h-10 w-10 place-items-center rounded-xl ${offline ? "bg-warning/15 text-warning" : "bg-energy/15 text-energy"}`}>
+                                {offline ? <WifiOff className="h-5 w-5" /> : <CloudUpload className="h-5 w-5" />}
+                            </span>
+                            <div>
+                                <p className="font-bold text-sm">{offline ? "Offline mode" : "Pending sync"}</p>
+                                <p className="text-xs text-theme-muted mt-0.5">
+                                    {offline
+                                        ? hasPending
+                                            ? `${pendingCount} check-in${pendingCount === 1 ? "" : "s"} saved locally. Uploading automatically when internet returns.`
+                                            : "Check-ins are saved locally and upload automatically when internet returns."
+                                        : `${pendingCount} check-in${pendingCount === 1 ? "" : "s"} ready to upload.`}
+                                </p>
+                            </div>
+                        </div>
+                        {!offline && hasPending && (
+                            <button onClick={() => void syncPending()} disabled={syncing} className="btn btn--primary btn--sm">
+                                {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sync now"}
+                            </button>
+                        )}
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                        {offline && cacheSyncedAt === null && (
+                            <span className="text-warning">No offline data yet — connect once to sync member data.</span>
+                        )}
+                        {offline && cacheSyncedAt !== null && (
+                            <span className={cacheStale ? "text-warning" : "text-theme-muted"}>
+                                Offline data synced {formatTimeAgo(cacheSyncedAt)}{cacheStale ? " — may be stale" : ""}.
+                            </span>
+                        )}
+                        {syncing && (
+                            <span className="inline-flex items-center gap-1.5 text-theme-muted">
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Syncing…
+                            </span>
+                        )}
+                        {syncMessage && <span className="text-theme-secondary">{syncMessage}</span>}
+                    </div>
+                </motion.section>
+            )}
 
             <div className="grid lg:grid-cols-[1.05fr_1fr] gap-5">
                 <section className="card p-5">
@@ -231,6 +436,11 @@ export default function ScanQR() {
                                     )}
                                 </div>
                             )}
+                            {result.pendingSync && (
+                                <p className="mt-2 text-xs text-warning inline-flex items-center gap-1.5 justify-center">
+                                    <CloudUpload className="h-3.5 w-3.5" /> Saved offline — will upload when back online
+                                </p>
+                            )}
                             {result.errorDetails ? (
                                 <DetailedErrorPanel error={result.errorDetails} className="mt-3 text-left" />
                             ) : (
@@ -244,16 +454,22 @@ export default function ScanQR() {
                 <section className="card overflow-hidden">
                     <div className="p-4 border-b border-theme flex items-center justify-between">
                         <p className="eyebrow">Today</p>
-                        <span className="pill pill--energy">{todayCheckIns?.length ?? 0} check-ins</span>
+                        <div className="flex items-center gap-2">
+                            {hasPending && <span className="pill pill--warning">{pendingCount} pending</span>}
+                            <span className="pill pill--energy">{displayToday.length} check-ins</span>
+                        </div>
                     </div>
-                    {!todayCheckIns || todayCheckIns.length === 0 ? (
+                    {displayToday.length === 0 ? (
                         <div className="py-16 text-center eyebrow">No check-ins yet</div>
                     ) : (
                         <div className="divide-y divide-[var(--border)] max-h-[560px] overflow-auto">
-                            {todayCheckIns.map((item) => (
+                            {displayToday.map((item) => (
                                 <div key={item._id} className="p-4 flex items-center justify-between gap-4 hover:bg-hover transition-colors">
                                     <div>
-                                        <p className="font-semibold">{item.member.firstName} {item.member.lastName}</p>
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-semibold">{item.member.firstName} {item.member.lastName}</p>
+                                            {item.pending && <span className="pill pill--warning !text-[10px]">Pending</span>}
+                                        </div>
                                         <p className="text-xs text-theme-muted font-mono mt-0.5">{item.member.qrCode}</p>
                                     </div>
                                     <p className="text-xs text-theme-muted inline-flex items-center gap-1.5">

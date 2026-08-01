@@ -3,10 +3,47 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { toDisplayError, type AppErrorDetails } from "./errorHandling";
+import { useOnlineStatus } from "./useOnlineStatus";
 
 const SESSION_KEY = "gym_app_session_token";
+const PROFILE_KEY = "offline_profile_v1";
 
 type AuthRole = "gym" | "member" | "superadmin";
+
+type CachedProfile = {
+  userId: Id<"users">;
+  email: string;
+  role: AuthRole;
+  memberId?: Id<"members">;
+  gymId?: Id<"gyms">;
+  sessionExpiresAt: number;
+  displayName: string;
+};
+
+function getCachedProfile(): CachedProfile | null {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    return raw ? (JSON.parse(raw) as CachedProfile) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveCachedProfile(profile: CachedProfile): void {
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  } catch {
+    // no-op
+  }
+}
+
+function clearCachedProfile(): void {
+  try {
+    localStorage.removeItem(PROFILE_KEY);
+  } catch {
+    // no-op
+  }
+}
 
 type AuthUser = {
   userId: Id<"users">;
@@ -74,8 +111,10 @@ function getStoredSessionToken(): string | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessionToken, setSessionToken] = useState<string | null>(() => getStoredSessionToken());
+  const [cachedProfile, setCachedProfile] = useState<CachedProfile | null>(getCachedProfile);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const isOnline = useOnlineStatus();
 
   const loginMutation = useMutation(api.authLegacy.login);
   const registerGymMutation = useMutation(api.authLegacy.registerGym);
@@ -86,7 +125,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const me = useQuery(api.authLegacy.me, sessionToken ? { sessionToken } : "skip");
 
   useEffect(() => {
+    if (me && sessionToken) {
+      const profile: CachedProfile = {
+        userId: me.userId,
+        email: me.email,
+        role: me.role as AuthRole,
+        memberId: me.memberId,
+        gymId: me.gymId,
+        sessionExpiresAt: me.sessionExpiresAt,
+        displayName: me.displayName,
+      };
+      setCachedProfile(profile);
+      saveCachedProfile(profile);
+    }
+  }, [me, sessionToken]);
+
+  useEffect(() => {
     if (!sessionToken) {
+      setIsInitialized(true);
+      return;
+    }
+
+    if (!isOnline) {
+      if (cachedProfile && cachedProfile.sessionExpiresAt > Date.now()) {
+        setIsInitialized(true);
+        return;
+      }
+      setSessionToken(null);
+      localStorage.removeItem(SESSION_KEY);
+      clearCachedProfile();
+      setCachedProfile(null);
       setIsInitialized(true);
       return;
     }
@@ -98,24 +166,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!me) {
       setSessionToken(null);
       localStorage.removeItem(SESSION_KEY);
+      clearCachedProfile();
+      setCachedProfile(null);
     }
 
     setIsInitialized(true);
-  }, [me, sessionToken]);
+  }, [me, sessionToken, isOnline, cachedProfile]);
 
   const user = useMemo<AuthUser | null>(() => {
-    if (!me) return null;
+    if (!sessionToken) return null;
+    const profile = me !== undefined ? me : cachedProfile;
+    if (!profile) return null;
     return {
-      userId: me.userId,
-      memberId: me.memberId,
-      gymId: me.gymId,
-      email: me.email,
-      role: me.role,
-      displayName: me.displayName,
-      sessionExpiresAt: me.sessionExpiresAt,
+      userId: profile.userId,
+      memberId: profile.memberId,
+      gymId: profile.gymId,
+      email: profile.email,
+      role: profile.role as AuthRole,
+      displayName: profile.displayName,
+      sessionExpiresAt: profile.sessionExpiresAt,
       sessionToken,
     };
-  }, [me, sessionToken]);
+  }, [me, cachedProfile, sessionToken]);
 
   const login = useCallback(async (input: LoginInput): Promise<AuthResult> => {
     setIsLoading(true);
@@ -223,6 +295,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = sessionToken;
     setSessionToken(null);
     localStorage.removeItem(SESSION_KEY);
+    clearCachedProfile();
+    setCachedProfile(null);
     if (token) {
       try {
         await logoutMutation({ sessionToken: token });
