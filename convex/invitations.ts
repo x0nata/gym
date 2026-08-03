@@ -1,12 +1,33 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, type MutationCtx } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
 import { requireGymUser } from "./lib/session";
 
 const INVITATION_TTL_MS = 1000 * 60 * 60 * 24 * 14;
+const CODE_LENGTH = 6;
+const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-function generateCode(prefix: "MEM" | "COACH"): string {
-  return `${prefix}-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+function randomCode(length: number): string {
+  let out = "";
+  for (let i = 0; i < length; i += 1) {
+    out += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+  }
+  return out;
+}
+
+async function generateUniqueCode(ctx: MutationCtx, prefix: "MEM" | "COACH"): Promise<string> {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const code = `${prefix}-${randomCode(CODE_LENGTH)}`;
+    const existing = await ctx.db
+      .query("invitations")
+      .withIndex("by_code", (q) => q.eq("code", code))
+      .first();
+    if (!existing) return code;
+  }
+  throw new ConvexError({
+    code: "CODE_GENERATION_FAILED",
+    message: "Could not generate a unique invite code. Try again.",
+  });
 }
 
 function normalizePhone(phone: string): string {
@@ -41,7 +62,7 @@ export const createMemberInvitation = mutation({
       });
     }
 
-    const code = generateCode("MEM");
+    const code = await generateUniqueCode(ctx, "MEM");
     const pendingEmail = `pending+${code.toLowerCase()}@invite.local`;
 
     const memberId = await ctx.db.insert("members", {
@@ -173,7 +194,7 @@ export const regenerate = mutation({
     }
 
     const now = Date.now();
-    const code = generateCode(invitation.type === "member" ? "MEM" : "COACH");
+    const code = await generateUniqueCode(ctx, invitation.type === "member" ? "MEM" : "COACH");
 
     await ctx.db.patch(args.invitationId, {
       code,

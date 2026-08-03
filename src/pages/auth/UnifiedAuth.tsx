@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Building2, Mail, Lock, Ticket, Phone, MapPin, Loader2, Moon, Sun, Shield } from "lucide-react";
 import { useAuth } from "../../lib/useAuth";
@@ -13,9 +13,19 @@ type Role = "gym" | "member" | "superadmin";
 type Mode = "signin" | "register";
 type MemberAuthMode = "regular" | "first-time";
 
+function normalizeInviteKey(value: string): string {
+  return value
+    .trim()
+    .toUpperCase()
+    .replace(/^MEM-/, "")
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 6);
+}
+
 export default function UnifiedAuth() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const {
     login,
     registerGym,
@@ -29,22 +39,27 @@ export default function UnifiedAuth() {
 
   const { theme, toggleTheme } = useTheme();
 
+  const inviteParam = searchParams.get("invite");
+
   const [role, setRole] = useState<Role>(location.pathname === "/auth/gym" ? "gym" : "member");
   const [mode, setMode] = useState<Mode>("signin");
-  const [memberAuthMode, setMemberAuthMode] = useState<MemberAuthMode>("regular");
+  const [memberAuthMode, setMemberAuthMode] = useState<MemberAuthMode>(inviteParam ? "first-time" : "regular");
   const [memberInviteVerified, setMemberInviteVerified] = useState(false);
   const [memberDisplayName, setMemberDisplayName] = useState("");
   const [error, setError] = useState<AppErrorDetails | null>(null);
 
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-    invitationCode: "",
-    name: "",
-    phone: "",
-    address: "",
-    city: "",
-    description: "",
+  const [form, setForm] = useState(() => {
+    const phoneParam = searchParams.get("phone") ?? "";
+    return {
+      email: "",
+      password: "",
+      invitationCode: inviteParam ? `MEM-${normalizeInviteKey(inviteParam)}` : "",
+      name: "",
+      phone: phoneParam,
+      address: "",
+      city: "",
+      description: "",
+    };
   });
 
   useEffect(() => {
@@ -66,6 +81,10 @@ export default function UnifiedAuth() {
 
   const onChange = (key: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleInviteKeyChange = (value: string) => {
+    onChange("invitationCode", `MEM-${normalizeInviteKey(value)}`);
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -280,12 +299,14 @@ className={`py-2.5 rounded-xl text-sm font-semibold transition-all ${
 
             {role === "member" && memberAuthMode === "first-time" && !memberInviteVerified && (
               <Field label="Invite code" icon={Ticket}>
+                <span className="absolute left-11 top-1/2 -translate-y-1/2 font-mono text-sm font-semibold text-theme-muted pointer-events-none">MEM-</span>
                 <input
-                  value={form.invitationCode}
-                  onChange={(e) => onChange("invitationCode", e.target.value.toUpperCase())}
+                  value={form.invitationCode.replace(/^MEM-/, "")}
+                  onChange={(e) => handleInviteKeyChange(e.target.value)}
                   required
-                  className="field !pl-11"
-                  placeholder="MEM-XXXX-XXXX"
+                  maxLength={6}
+                  className="field !pl-20"
+                  placeholder="XXXXXX"
                 />
               </Field>
             )}

@@ -11,6 +11,7 @@ import {
     ChevronRight,
     Ticket,
     Copy,
+    Link2,
     RefreshCw,
     Ban,
     X,
@@ -40,7 +41,9 @@ export default function Members() {
   const [modal, setModal] = useState<ModalMode>(null);
   const [error, setError] = useState<AppErrorDetails | null>(null);
   const [invitationCode, setInvitationCode] = useState("");
+  const [invitePhone, setInvitePhone] = useState("");
   const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
@@ -57,6 +60,7 @@ export default function Members() {
     try {
       const result = await createMember({ sessionToken, firstName, lastName, phone });
       setInvitationCode(result.invitationCode);
+      setInvitePhone(phone);
       setFirstName("");
       setLastName("");
       setPhone("");
@@ -71,6 +75,15 @@ export default function Members() {
     setInvitationCode(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 1400);
+  };
+
+  const buildInviteLink = (code: string, phone: string) =>
+    `${window.location.origin}/auth/user?invite=${encodeURIComponent(code)}&phone=${encodeURIComponent(phone)}`;
+
+  const copyLink = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 1400);
   };
 
   const handleRevoke = async (invitationId: Id<"invitations">) => {
@@ -191,6 +204,7 @@ export default function Members() {
                 <span className={`pill ${inv.status === "pending" ? "pill--warning" : inv.status === "claimed" ? "pill--success" : ""}`}>{inv.status}</span>
                 <div className="flex gap-1.5">
                   <button onClick={() => copyCode(inv.code)} className="grid h-8 w-8 place-items-center rounded-lg border border-theme hover:bg-hover transition-colors"><Copy className="h-3.5 w-3.5" /></button>
+                  <button onClick={() => copyLink(buildInviteLink(inv.code, inv.phone ?? ""))} className="grid h-8 w-8 place-items-center rounded-lg border border-theme hover:bg-hover transition-colors"><Link2 className="h-3.5 w-3.5" /></button>
                   {inv.status !== "claimed" && (
                     <button onClick={() => handleRegenerate(inv._id)} className="grid h-8 w-8 place-items-center rounded-lg border border-theme hover:bg-hover transition-colors"><RefreshCw className="h-3.5 w-3.5" /></button>
                   )}
@@ -245,6 +259,16 @@ export default function Members() {
                         <code className="flex-1 font-mono font-bold">{invitationCode}</code>
                         <button onClick={() => copyCode(invitationCode)} className="grid h-8 w-8 place-items-center rounded-lg border border-theme hover:bg-hover transition-colors">
                           {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-theme bg-hover p-4">
+                      <p className="eyebrow">Or send them this link</p>
+                      <div className="mt-2.5 flex items-center gap-2 p-2.5 rounded-xl border border-theme bg-bg-raised">
+                        <Link2 className="h-4 w-4 text-accent-light shrink-0" />
+                        <code className="flex-1 font-mono font-bold text-xs truncate">{buildInviteLink(invitationCode, invitePhone)}</code>
+                        <button onClick={() => copyLink(buildInviteLink(invitationCode, invitePhone))} className="grid h-8 w-8 place-items-center rounded-lg border border-theme hover:bg-hover transition-colors">
+                          {copiedLink ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
                         </button>
                       </div>
                     </div>
